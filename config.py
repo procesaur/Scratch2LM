@@ -1,6 +1,6 @@
 from os import path as px
-from transformers import RobertaConfig, GPT2Config, TrainingArguments, RobertaForMaskedLM, GPT2LMHeadModel
-from transformers import RobertaTokenizerFast, GPT2TokenizerFast, DataCollatorForLanguageModeling
+from transformers import RobertaConfig, GPT2Config, AutoModelWithLMHead, RobertaForMaskedLM, GPT2LMHeadModel
+from transformers import RobertaTokenizerFast, GPT2TokenizerFast, DataCollatorForLanguageModeling, TrainingArguments
 from torch import cuda
 
 
@@ -10,6 +10,7 @@ train_path = "mini_train.json"
 dev_path = "mini_dev.json"
 tokenizer_path = "tokenizer-srpski.json"
 encoded_file_keyword = "_encoded_"
+pretrained_model = None
 
 model_folder = "saved"
 epochs = 3
@@ -79,33 +80,36 @@ model_folder = px.join(px.dirname(__file__), model_folder)
 # Device initialization
 device = "cuda:0" if cuda.is_available() else "cpu"
 
-# Model configuration
-if model_type == "gpt2":
+if pretrained_model:
+    model = AutoModelWithLMHead.from_pretrained(pretrained_model)
+else:
+    # Model configuration
+    if model_type == "gpt2":
 
-    tokenizer = GPT2TokenizerFast(tokenizer_file=tokenizer_path, padding=False, pad_token="a")
+        tokenizer = GPT2TokenizerFast(tokenizer_file=tokenizer_path, padding=False, pad_token="a")
 
-    data_collator = DataCollatorForLanguageModeling(
-        tokenizer=tokenizer, mlm=False,
-    )
+        data_collator = DataCollatorForLanguageModeling(
+            tokenizer=tokenizer, mlm=False,
+        )
 
-    model_config = gpt2_large_config
-    model_config.vocab_size = tokenizer.vocab_size
-    model = GPT2LMHeadModel.from_config(model_config)
+        model_config = gpt2_large_config
+        model_config.vocab_size = tokenizer.vocab_size
+        model = GPT2LMHeadModel.from_config(model_config)
 
-elif model_type == "roberta":
+    elif model_type == "roberta":
 
-    tokenizer = RobertaTokenizerFast(tokenizer_file=tokenizer_path,
-                                     pad_token="<pad>", unk_token="<unk>", mask_token="<mask>")
+        tokenizer = RobertaTokenizerFast(tokenizer_file=tokenizer_path,
+                                         pad_token="<pad>", unk_token="<unk>", mask_token="<mask>")
 
-    data_collator = DataCollatorForLanguageModeling(
-        mlm=True,
-        mlm_probability=0.15,
-        tokenizer=tokenizer,
-    )
+        data_collator = DataCollatorForLanguageModeling(
+            mlm=True,
+            mlm_probability=0.15,
+            tokenizer=tokenizer,
+        )
 
-    model_config = roberta_large_config
-    model_config.vocab_size = tokenizer.vocab_size
-    model = RobertaForMaskedLM(config=model_config)
+        model_config = roberta_large_config
+        model_config.vocab_size = tokenizer.vocab_size
+        model = RobertaForMaskedLM(config=model_config)
 
 training_args = TrainingArguments(
     output_dir=model_folder,

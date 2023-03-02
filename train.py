@@ -1,10 +1,7 @@
 from datasets import JsonDataset
 from config import train_path, dev_path, model, tokenizer, device, data_collator, training_args
 from transformers import Trainer
-import sys
 
-
-#sys.setrecursionlimit(20000)
 
 # Create the train and evaluation dataset
 train_dataset = JsonDataset(train_path)
