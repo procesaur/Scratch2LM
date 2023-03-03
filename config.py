@@ -6,8 +6,8 @@ from torch import cuda
 
 # Settings
 model_type = "roberta"  # gpt2 roberta
-train_path = "mini_train.json"
-dev_path = "mini_dev.json"
+train_path = "data/mini_train.json"
+dev_path = "data/mini_dev.json"
 tokenizer_path = "tokenizer.json"
 encoded_file_keyword = "_encoded_"
 pretrained_model = None
