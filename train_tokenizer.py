@@ -20,4 +20,4 @@ tokenizer_trainer = trainers.BpeTrainer(
 )
 
 tokenizer.train([train_path + x for x in listdir(train_path)], tokenizer_trainer)
-tokenizer.save(train_path + "tokenizer-srpski.json", pretty=True)
+tokenizer.save(train_path + "tokenizer.json", pretty=True)

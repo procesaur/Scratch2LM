@@ -8,7 +8,7 @@ from torch import cuda
 model_type = "roberta"  # gpt2 roberta
 train_path = "mini_train.json"
 dev_path = "mini_dev.json"
-tokenizer_path = "tokenizer-srpski.json"
+tokenizer_path = "tokenizer.json"
 encoded_file_keyword = "_encoded_"
 pretrained_model = None
 
@@ -16,12 +16,12 @@ model_folder = "saved"
 epochs = 3
 learning_rate = 0.0001
 decay = 0.01
-batch_size = 2
+batch_size = 1
 dev_batch_size = 8
-save_steps = 8192
-eval_steps = 4096
+save_steps = 128  # 8192
+eval_steps = 128  # 4096
 save_total_limit = 1
-warmup_steps = 500
+warmup_steps = 5  # 500
 
 bos_token = 50259
 eos_token = 50260
@@ -56,8 +56,8 @@ gpt2_large_config = GPT2Config(
 
 roberta_large_config = RobertaConfig(
         max_position_embeddings=514,
-        num_attention_heads=16,
-        num_hidden_layers=24,
+        num_attention_heads=8,  # 16
+        num_hidden_layers=12,  # 24
         type_vocab_size=1,
 
         attention_probs_dropout_prob=0.1,
@@ -121,7 +121,7 @@ training_args = TrainingArguments(
     per_device_train_batch_size=batch_size,
     per_device_eval_batch_size=dev_batch_size,
     save_steps=save_steps,
-    # eval_steps=eval_steps,
+    eval_steps=eval_steps,
     save_total_limit=save_total_limit,
     warmup_steps=warmup_steps
 )
