@@ -1,5 +1,5 @@
 from datasets import JsonDataset
-from config import train_path, dev_path, model, tokenizer, device, data_collator, training_args
+from config import train_path, dev_path, model, tokenizer, device, data_collator, training_args, output_from_model
 from callbacks import CustomDefaultFlowCallback, DefaultFlowCallback
 from transformers import Trainer
 
@@ -21,8 +21,9 @@ trainer = Trainer(
     # prediction_loss_only=True,
 )
 
-trainer.remove_callback(DefaultFlowCallback)
-trainer.add_callback(CustomDefaultFlowCallback)
+if output_from_model:
+    trainer.remove_callback(DefaultFlowCallback)
+    trainer.add_callback(CustomDefaultFlowCallback)
 
 # Train the model
 trainer.train()

@@ -23,22 +23,23 @@ def multipleJson2dataset(path):
         json2dataset(path, file, tokenizer, save=True)
 
 
-def encoded2datasets(path, files, dev_ratio=0.1, shfl=True, save=False, save_path=None):
+def encoded2datasets(path, files, trim=None, block=None, dev_ratio=0.1, shfl=True, save=False, save_path=None):
 
     if save_path is None:
         save_path = path
 
-    dataset = EncodedFiles2Dataset(path, files, shfl)
+    dataset = EncodedFiles2Dataset(path, files, shfl, trim=trim, block=block)
     if save:
         dataset.__jdumpwsplit__(save_path, dev_ratio)
     else:
         return dataset
 
 
-def multipleEncoded2datasets(path):
+def multipleEncoded2datasets(path, trim=None, block=None):
     files = [x for x in listdir(path) if encoded_file_keyword in x]
-    encoded2datasets(path, files[2:4], save=True)
+    encoded2datasets(path, files, save=True, trim=trim, block=block)
 
 
-# multipleEncoded2datasets(path)
 # json2dataset(path, file, tokenizer, save=True)
+# multipleEncoded2datasets(path, trim=512)
+

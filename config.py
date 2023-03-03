@@ -4,14 +4,19 @@ from transformers import RobertaTokenizerFast, GPT2TokenizerFast, DataCollatorFo
 from torch import cuda
 
 
-# Settings
-model_type = "roberta"  # gpt2 roberta
+# # Settings # #
+
+# paths
+tokenizer_train_path = "C:/gpt2/za_tokenizer/"
 train_path = "data/mini_train.json"
 dev_path = "data/mini_dev.json"
 tokenizer_path = "tokenizer.json"
-encoded_file_keyword = "_encoded_"
+
+# model
+model_type = "roberta"  # gpt2 roberta
 pretrained_model = None
 
+# training parameters
 model_folder = "saved"
 epochs = 3
 learning_rate = 0.0001
@@ -23,9 +28,14 @@ eval_steps = 128  # 4096
 save_total_limit = 1
 warmup_steps = 5  # 500
 
+# tokenizer dependent
 bos_token = 50259
 eos_token = 50260
 
+# misc
+encoded_file_keyword = "_encoded_"
+
+# model config for gpt2
 gpt2_large_config = GPT2Config(
         attn_pdrop=0.1,
         bos_token_id=bos_token,
@@ -54,6 +64,7 @@ gpt2_large_config = GPT2Config(
         }
     )
 
+# model config for roberta
 roberta_large_config = RobertaConfig(
         max_position_embeddings=514,
         num_attention_heads=8,  # 16
@@ -71,6 +82,8 @@ roberta_large_config = RobertaConfig(
         layer_norm_eps=1e-05,
     )
 
+output_from_model = True
+
 # Paths computation
 train_path = px.join(px.dirname(__file__), train_path)
 dev_path = px.join(px.dirname(__file__), dev_path)
@@ -80,6 +93,7 @@ model_folder = px.join(px.dirname(__file__), model_folder)
 # Device initialization
 device = "cuda:0" if cuda.is_available() else "cpu"
 
+# Model initialization
 if pretrained_model:
     model = AutoModelWithLMHead.from_pretrained(pretrained_model)
 else:
@@ -111,6 +125,7 @@ else:
         model_config.vocab_size = tokenizer.vocab_size
         model = RobertaForMaskedLM(config=model_config)
 
+# Training args fill
 training_args = TrainingArguments(
     output_dir=model_folder,
     overwrite_output_dir=True,

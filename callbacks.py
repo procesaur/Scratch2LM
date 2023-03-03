@@ -1,4 +1,4 @@
-from test import fill_examples
+from test import test
 from transformers import DefaultFlowCallback, ProgressCallback
 from transformers.trainer_callback import TrainerState, TrainerControl, TrainingArguments, IntervalStrategy
 from config import model_folder, tokenizer_path, tokenizer
@@ -27,7 +27,7 @@ class CustomDefaultFlowCallback(DefaultFlowCallback):
             and state.global_step % args.save_steps == 0
         ):
             control.should_save = True
-            examples = fill_examples(kwargs["model"])
+            examples = test(kwargs["model"])
             print(examples)
 
         # End training

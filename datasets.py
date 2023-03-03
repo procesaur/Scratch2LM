@@ -24,7 +24,7 @@ class TextualDataset(Dataset):
 
 
 class EncodedFiles2Dataset(Dataset):
-    def __init__(self, path, files, shfl=True, trim=None):
+    def __init__(self, path, files, shfl=True, trim=None, block=None):
         self.examples = []
         for file in files:
             with open(path + file, "r") as jf:
@@ -33,9 +33,15 @@ class EncodedFiles2Dataset(Dataset):
             shuffle(self.examples)
         if trim:
             self.examples = [x[:trim] for x in self.examples]
+        if block:
+            self.examples = list(self.split(sum(self.examples, []), block))
 
     def __len__(self):
         return len(self.examples)
+
+    def split(self, list_a, chunk_size):
+        for i in range(0, len(list_a), chunk_size):
+            yield list_a[i:i + chunk_size]
 
     def __getitem__(self, i):
         # We’ll pad at the batch level.
