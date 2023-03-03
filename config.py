@@ -10,7 +10,7 @@ from torch import cuda
 tokenizer_train_path = "C:/gpt2/za_tokenizer/"
 train_path = "data/mini_train.json"
 dev_path = "data/mini_dev.json"
-tokenizer_path = "tokenizer.json"
+tokenizer_path = "data/tokenizer.json"
 
 # model
 model_type = "roberta"  # gpt2 roberta
