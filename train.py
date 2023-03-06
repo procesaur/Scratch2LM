@@ -1,5 +1,5 @@
 from datasets import JsonDataset
-from config import train_path, dev_path, model, tokenizer, device, data_collator, training_args, output_from_model
+from config import train_path, dev_path, model, data_collator, training_args, output_from_model
 from callbacks import CustomDefaultFlowCallback, DefaultFlowCallback
 from transformers import Trainer
 
@@ -7,10 +7,6 @@ from transformers import Trainer
 # Create the train and evaluation dataset
 train_dataset = JsonDataset(train_path)
 eval_dataset = JsonDataset(dev_path)
-
-# Initialize the model from a configuration without pretrained weights
-print(device)
-model = model.to(device)
 
 trainer = Trainer(
     model=model,
