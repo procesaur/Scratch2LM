@@ -3,6 +3,7 @@ Training transformer models (e.g. RoBERTa and GPT2-large) from scratch.
 
 inspiration : https://huggingface.co/blog/how-to-train
 
+
 ## 1. TOKENIZER TRAINING (skip if you have tokenizer you want to use)
 1. set **tokenizer_train_path** in **config.py:10**. It should point to a folder containing textual files.
 2. lounch **train_tokenizer.py**. New tokenizer will be saved as **tokenizer.json** in the previously provided path.
@@ -53,3 +54,6 @@ If you hadn't mendled with the settings after the second step, just supply it wi
 If you don't want this kind of output during the training, set **output_from_model** to False at **config.py:85**
 3. Run **train.py**
     
+## REMARKS
+
+Code is also available as a jupyter notebook in the **note.ipynb** file.
