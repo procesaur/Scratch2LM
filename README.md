@@ -23,7 +23,7 @@ inspiration : https://huggingface.co/blog/how-to-train
     from encode_data import multipleJson2dataset
     multipleJson2dataset("path/to/your/files")
     ```
-    This will use your set tokenizer to tokenize each sentence in the **sents** list and save it to a new json file, which will encompas your encoded data.
+    This will use your set tokenizer to tokenize each sentence in the **sents** list and save it to a new **jsonl** file, which will encompas your encoded data.
     You can recognize the new files by a keyword **_encoded_** witch you can change by changing the **encoded_file_keyword**  in **config.py:36**.
 ## 3. TRAINING SETS PREPARATION
 1. use **encode_data.py** **multipleEncoded2datasets** method and provide it with the path to a directory containing your new dataset files (json). They will be filtered by the formentioned keyword. 
@@ -44,10 +44,11 @@ If you hadn't mendled with the settings after the second step, just supply it wi
     If this is not what you want, you can edit default params for **encoded2datasets** function or edit the call to it from **multipleEncoded2datasets** (in **encode_data.py**).
 ## 4. MODEL TRAINING
 1. Make sure that the parameters are set correctly in the **config.py**, namely: (If you hadn't changed any of the params so far, you shouldn't need to change that at the moment)
-    - path to train and dev datasets: **train_path** and **dev_path** at **config.py:11-12**
-    - path to the tokenizer you used for data encoding: **tokenizer_path** atoutput_from_model
-    - model type you want to train: **model_type** at **config.py:16**, which should be "roberta" or "gpt2"
-    - training parameters you want to use at **config.py:20-29**
+    - path to your tokenizer, train and dev datasets: **tokenizer_path**, **train_path** and **dev_path** at **config.py:10-13**
+      as well as your **model_folder** at line 14, especially if you are continuing from a checkpoint
+    - model type you want to train: **model_type** at **config.py:17**, which should be "roberta" or "gpt2"
+    - at lines 18 and 19 configure weather you want are using a pretrained model and if you want to resume from previous checkpoints
+    - training parameters you want to use at **config.py:21-29**
     - **bos_token** and **eos_token** at **config.py:32-33**
     - adequate model parameters at **config.py:39-65** for gpt-2 and **config.py:68-83** for roberta
 2. (optional) Set a list of sentences for masking fill test for BERT at by editing **fill_test_examples** at **test.py:7** or edit the defualt generation query for GPT by editing **default_gen_input** at **test.py:14**.

@@ -7,24 +7,24 @@ from torch import cuda
 # # Settings # #
 
 # paths
-tokenizer_train_path = "C:/gpt2/za_tokenizer/"
-train_path = "data/mini_train.json"
-dev_path = "data/mini_dev.json"
-tokenizer_path = "data/tokenizer.json"
+main_path = "C:/Users/Administrator/Desktop/training/"
+train_path = main_path + "train.jsonl"
+dev_path = main_path + "dev.jsonl"
+tokenizer_path = main_path + "tokenizer.json"
+model_folder = main_path + "saved"
 
-# model
+# model and training parameters
 model_type = "roberta"  # gpt2 roberta
 pretrained_model = None
+resume = True
 
-# training parameters
-model_folder = "saved"
 epochs = 3
 learning_rate = 0.0001
 decay = 0.01
-batch_size = 16
-dev_batch_size = 16
-save_steps = 128  # 8192
-eval_steps = 128  # 4096
+batch_size = 8
+dev_batch_size = 8
+save_steps = 8192 #8192
+eval_steps = 4096 #4096
 save_total_limit = 1
 warmup_steps = 5  # 500
 
@@ -67,8 +67,8 @@ gpt2_large_config = GPT2Config(
 # model config for roberta
 roberta_large_config = RobertaConfig(
         max_position_embeddings=514,
-        num_attention_heads=8,  # 16
-        num_hidden_layers=12,  # 24
+        num_attention_heads=16,  # 16
+        num_hidden_layers=24,  # 24
         type_vocab_size=1,
 
         attention_probs_dropout_prob=0.1,
@@ -83,12 +83,6 @@ roberta_large_config = RobertaConfig(
     )
 
 output_from_model = True
-
-# Paths computation
-train_path = px.join(px.dirname(__file__), train_path)
-dev_path = px.join(px.dirname(__file__), dev_path)
-tokenizer_path = px.join(px.dirname(__file__), tokenizer_path)
-model_folder = px.join(px.dirname(__file__), model_folder)
 
 # Device initialization
 device = "cuda:0" if cuda.is_available() else "cpu"

@@ -76,4 +76,3 @@ def test(mod, tok=tokenizer):
         return fill_examples(mod, tok)
     elif model_type == "gpt2":
         return generatetion_test(mod, tok)
-

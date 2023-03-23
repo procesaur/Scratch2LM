@@ -1,5 +1,5 @@
 from datasets import JsonDataset
-from config import train_path, dev_path, model, data_collator, training_args, output_from_model
+from config import train_path, dev_path, model, data_collator, training_args, output_from_model, resume
 from callbacks import CustomDefaultFlowCallback, DefaultFlowCallback
 from transformers import Trainer
 
@@ -22,4 +22,4 @@ if output_from_model:
     trainer.add_callback(CustomDefaultFlowCallback)
 
 # Train the model
-trainer.train()
+trainer.train(resume_from_checkpoint=resume)
