@@ -1,6 +1,6 @@
 from tokenizers import Tokenizer, models, pre_tokenizers, decoders, processors, trainers
 from os import listdir
-from config import tokenizer_train_path as train_path
+from config import tokenizer_path as train_path
 
 
 # Initialize a tokenizer

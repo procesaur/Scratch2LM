@@ -4,19 +4,17 @@
 # get_ipython().system('pip install transformers')
 # get_ipython().system('pip install --upgrade ipywidgets')
 
-from torch.utils.data import Dataset
 from json import loads
-from torch import tensor
+from random import randint
+
+from torch.utils.data import Dataset
+from torch import tensor, cuda, randint as torch_rand
 
 from transformers import RobertaConfig, GPT2Config, AutoModelWithLMHead, RobertaForMaskedLM, GPT2LMHeadModel
-from transformers import RobertaTokenizerFast, GPT2TokenizerFast, DataCollatorForLanguageModeling, TrainingArguments
-from torch import cuda
+from transformers import RobertaTokenizerFast, GPT2TokenizerFast, DataCollatorForLanguageModeling
 from transformers import DefaultFlowCallback, ProgressCallback
 from transformers.trainer_callback import TrainerState, TrainerControl, TrainingArguments, IntervalStrategy
-
 from transformers import pipeline, Trainer
-from random import randint
-from torch import randint as torch_rand
 
 
 for c in range(0, cuda.device_count()):

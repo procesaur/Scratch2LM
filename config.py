@@ -1,4 +1,3 @@
-from os import path as px
 from transformers import RobertaConfig, GPT2Config, AutoModelWithLMHead, RobertaForMaskedLM, GPT2LMHeadModel
 from transformers import RobertaTokenizerFast, GPT2TokenizerFast, DataCollatorForLanguageModeling, TrainingArguments
 from torch import cuda
