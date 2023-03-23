@@ -1,7 +1,8 @@
 from torch.utils.data import Dataset
-from json import load, dump
+from json import load, dump, loads
 from random import shuffle
 from torch import tensor
+from jsonlines import open as jlopen
 
 
 class TextualDataset(Dataset):
@@ -53,20 +54,21 @@ class EncodedFiles2Dataset(Dataset):
 
     def __jdumpwsplit__(self, path, dev_ratio=0.1):
         split_line = round(self.__len__() * dev_ratio)
-        with open(path + "dev.json", "w") as jp:
-            dump(self.examples[:split_line], jp)
-        with open(path + "train.json", "w") as jp:
-            dump(self.examples[split_line:], jp)
+        with jlopen(path + "dev.json", "w") as jp:
+            jp.write_all(self.examples[:split_line])
+        with jlopen(path + "train.json", "w") as jp:
+            jp.write_all(self.examples[split_line:])
 
 
 class JsonDataset(Dataset):
     def __init__(self, jpath):
         with open(jpath, "r", encoding="utf-8") as jf:
-            self.examples = load(jf)
+            self.examples = list(jf)
 
     def __len__(self):
         return len(self.examples)
 
     def __getitem__(self, i):
         # We’ll pad at the batch level.
-        return tensor(self.examples[i])
+        return tensor(loads(self.examples[i]))
+
