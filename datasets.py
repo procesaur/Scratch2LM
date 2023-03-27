@@ -62,13 +62,18 @@ class EncodedFiles2Dataset(Dataset):
 
 class JsonDataset(Dataset):
     def __init__(self, jpath):
-        with open(jpath, "r", encoding="utf-8") as jf:
-            self.examples = list(jf)
+        if isinstance(jpath, str):
+            with open(jpath, "r", encoding="utf-8") as jf:
+                self.examples = list(jf)
+        else:
+            self.examples = []
+            for jp in jpath:
+                with open(jp, "r", encoding="utf-8") as jf:
+                    self.examples += list(jf)
 
     def __len__(self):
         return len(self.examples)
 
     def __getitem__(self, i):
-        # We’ll pad at the batch level.
-        return tensor(loads(self.examples[i]))
+        return tensor(loads(self.examples[i])).long()
 

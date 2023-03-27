@@ -1,0 +1,30 @@
+{
+  "paths" : {
+    "main_path" : "D:\\aplikacije_mihailo\\scratch2lm\\data",
+    "train_path" : "%main_path%/mini_train.jsonl",
+    "dev_path" : "%main_path%/mini_dev.jsonl",
+    "tokenizer_path" :"%main_path%/tokenizer.json",
+    "model_folder" : "D:\\aplikacije_mihailo\\scratch2lm\\saved"
+  },
+
+  "training-options": {
+    "epochs" : 3,
+    "batch_size" : 2,
+    "learning_rate" : 0.00008,
+    "decay" : 0.1,
+    "warmup_steps" : 2000,
+
+    "model" : "roberta-base",
+    "pretrained" : "",
+
+    "resume-from-checkpoint": false,
+    "output_from_model": true,
+    "save_steps" : 100000,
+    "save_total" : 1,
+    "save_best" : true
+  },
+
+  "misc": {
+      "encoded_file_keyword" : "_encoded_"
+  }
+}

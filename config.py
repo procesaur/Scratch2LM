@@ -1,110 +1,61 @@
-from transformers import RobertaConfig, GPT2Config, AutoModelWithLMHead, RobertaForMaskedLM, GPT2LMHeadModel
+from transformers import RobertaConfig, GPT2Config, GPTJConfig
+from transformers import AutoModelWithLMHead, RobertaForMaskedLM, GPT2LMHeadModel, GPTJModel
 from transformers import RobertaTokenizerFast, GPT2TokenizerFast, DataCollatorForLanguageModeling, TrainingArguments
 from torch import cuda
+from json import load
 
 
 # # Settings # #
+with open("training-congifs/config-config.json", "r") as cf:
+    cfg = load(cf)
 
 # paths
-main_path = "C:/Users/Administrator/Desktop/training/"
-train_path = main_path + "train.jsonl"
-dev_path = main_path + "dev.jsonl"
-tokenizer_path = main_path + "tokenizer.json"
-model_folder = main_path + "saved"
+train_path = cfg["paths"]["train_path"].replace("%main_path%", cfg["paths"]["main_path"])
+dev_path = cfg["paths"]["dev_path"].replace("%main_path%", cfg["paths"]["main_path"])
+tokenizer_path = cfg["paths"]["tokenizer_path"].replace("%main_path%", cfg["paths"]["main_path"])
+model_folder = cfg["paths"]["model_folder"].replace("%main_path%", cfg["paths"]["main_path"])
 
 # model and training parameters
-model_type = "roberta"  # gpt2 roberta
-pretrained_model = None
-resume = True
+model_type = cfg["training-options"]["model"]  # gpt2 roberta
+pretrained_model = cfg["training-options"]["pretrained"]
+resume = cfg["training-options"]["resume-from-checkpoint"]
+output_from_model = cfg["training-options"]["output_from_model"]
 
-epochs = 3
-learning_rate = 0.0001
-decay = 0.01
-batch_size = 8
-dev_batch_size = 8
-save_steps = 8192 #8192
-eval_steps = 4096 #4096
-save_total_limit = 1
-warmup_steps = 5  # 500
+# Training args fill
+training_args = TrainingArguments(
+    output_dir=model_folder,
+    overwrite_output_dir=True,
+    evaluation_strategy='epoch',
+
+    num_train_epochs=cfg["training-options"]["epochs"],
+    per_device_train_batch_size=cfg["training-options"]["batch_size"],
+    per_device_eval_batch_size=cfg["training-options"]["batch_size"],
+    save_steps=cfg["training-options"]["save_steps"],
+    save_total_limit=cfg["training-options"]["save_total"],
+    learning_rate=cfg["training-options"]["learning_rate"],
+    weight_decay=cfg["training-options"]["decay"],
+    warmup_steps=cfg["training-options"]["warmup_steps"],
+    remove_unused_columns=False
+)
+
+# misc
+encoded_file_keyword = cfg["misc"]["encoded_file_keyword"]
+device = "cuda:0" if cuda.is_available() else "cpu"
+
+with open("training-congifs/" + model_type + ".json", "r") as mf:
+    model_params = load(mf)
+
 
 # tokenizer dependent
 bos_token = 50259
 eos_token = 50260
-
-# misc
-encoded_file_keyword = "_encoded_"
-
-# model config for gpt2
-gpt2_large_config = GPT2Config(
-        attn_pdrop=0.1,
-        bos_token_id=bos_token,
-        embd_pdrop=0.1,
-        eos_token_id=eos_token,
-        initializer_range=0.02,
-        layer_norm_epsilon=1e-05,
-        model_type="gpt2",
-        n_ctx=1024,
-        n_embd=1280,
-        n_head=20,
-        n_layer=36,
-        n_positions=1024,
-        resid_pdrop=0.1,
-        summary_activation=None,
-        summary_first_dropout=0.1,
-        summary_proj_to_labels=True,
-        summary_type="cls_index",
-        summary_use_proj=True,
-        task_specific_params={
-            "text-generation":
-            {
-              "do_sample": True,
-              "max_length": 50
-            }
-        }
-    )
-
-# model config for roberta
-roberta_large_config = RobertaConfig(
-        max_position_embeddings=514,
-        num_attention_heads=16,  # 16
-        num_hidden_layers=24,  # 24
-        type_vocab_size=1,
-
-        attention_probs_dropout_prob=0.1,
-        bos_token_id=bos_token,
-        eos_token_id=eos_token,
-        hidden_act="gelu",
-        hidden_dropout_prob=0.1,
-        hidden_size=1024,
-        initializer_range=0.02,
-        intermediate_size=4096,
-        layer_norm_eps=1e-05,
-    )
-
-output_from_model = True
-
-# Device initialization
-device = "cuda:0" if cuda.is_available() else "cpu"
 
 # Model initialization
 if pretrained_model:
     model = AutoModelWithLMHead.from_pretrained(pretrained_model)
 else:
     # Model configuration
-    if model_type == "gpt2":
-
-        tokenizer = GPT2TokenizerFast(tokenizer_file=tokenizer_path, padding=False, pad_token="a")
-
-        data_collator = DataCollatorForLanguageModeling(
-            tokenizer=tokenizer, mlm=False,
-        )
-
-        model_config = gpt2_large_config
-        model_config.vocab_size = tokenizer.vocab_size
-        model = GPT2LMHeadModel.from_config(model_config)
-
-    elif model_type == "roberta":
-
+    if "roberta" in model_type:
         tokenizer = RobertaTokenizerFast(tokenizer_file=tokenizer_path,
                                          pad_token="<pad>", unk_token="<unk>", mask_token="<mask>")
 
@@ -114,22 +65,30 @@ else:
             tokenizer=tokenizer,
         )
 
-        model_config = roberta_large_config
-        model_config.vocab_size = tokenizer.vocab_size
-        model = RobertaForMaskedLM(config=model_config)
+        model_config = RobertaConfig(**model_params)
 
-# Training args fill
-training_args = TrainingArguments(
-    output_dir=model_folder,
-    overwrite_output_dir=True,
-    evaluation_strategy='epoch',
-    num_train_epochs=epochs,
-    learning_rate=learning_rate,
-    weight_decay=decay,
-    per_device_train_batch_size=batch_size,
-    per_device_eval_batch_size=dev_batch_size,
-    save_steps=save_steps,
-    eval_steps=eval_steps,
-    save_total_limit=save_total_limit,
-    warmup_steps=warmup_steps
-)
+    elif "gpt" in model_type:
+        tokenizer = GPT2TokenizerFast(tokenizer_file=tokenizer_path, padding=False, pad_token="a")
+
+        data_collator = DataCollatorForLanguageModeling(
+            tokenizer=tokenizer,
+            mlm=False,
+        )
+
+        if "gpt2" in model_type:
+            model_config = GPT2Config(**model_params)
+        elif "gptj" in model_type:
+            model_config = GPTJConfig(**model_params)
+
+    model_config.vocab_size = tokenizer.vocab_size
+    model_config.bos_token_id = tokenizer.bos_token_id
+    model_config.eos_token_id = tokenizer.bos_token_id
+
+    if "roberta" in model_type:
+        model = RobertaForMaskedLM(config=model_config)
+    elif "gpt2" in model_type:
+        model = GPT2LMHeadModel.from_config(model_config)
+    elif "gptj" in model_type:
+        model = GPTJModel.from_config(model_config)
+
+
