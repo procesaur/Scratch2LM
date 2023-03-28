@@ -1,12 +1,12 @@
 from datasets import JsonDataset
-from config import train_path, dev_path, model, data_collator, training_args, output_from_model, resume
+from config import paths, model, data_collator, training_args, model_options
 from callbacks import CustomDefaultFlowCallback, DefaultFlowCallback
 from transformers import Trainer
 
 
 # Create the train and evaluation dataset
-train_dataset = JsonDataset(train_path)
-eval_dataset = JsonDataset(dev_path)
+train_dataset = JsonDataset(paths["train_path"])
+eval_dataset = JsonDataset(paths["dev_path"])
 
 trainer = Trainer(
     model=model,
@@ -17,9 +17,9 @@ trainer = Trainer(
     # prediction_loss_only=True,
 )
 
-if output_from_model:
+if model_options["output_from_model"]:
     trainer.remove_callback(DefaultFlowCallback)
     trainer.add_callback(CustomDefaultFlowCallback)
 
 # Train the model
-trainer.train(resume_from_checkpoint=resume)
+trainer.train(resume_from_checkpoint=model_options["resume-from-checkpoint"])

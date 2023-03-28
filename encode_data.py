@@ -42,4 +42,3 @@ def multipleEncoded2datasets(path, trim=None, block=None):
 
 # json2dataset(path, file, tokenizer, save=True)
 # multipleEncoded2datasets(path, trim=512)
-

@@ -16,7 +16,6 @@ class TextualDataset(Dataset):
         return len(self.examples)
 
     def __getitem__(self, i):
-        # We’ll pad at the batch level.
         return tensor(self.examples[i])
 
     def __jdump__(self, path):
@@ -45,7 +44,6 @@ class EncodedFiles2Dataset(Dataset):
             yield list_a[i:i + chunk_size]
 
     def __getitem__(self, i):
-        # We’ll pad at the batch level.
         return tensor(self.examples[i])
 
     def __jdump__(self, path):

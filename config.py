@@ -1,94 +1,115 @@
-from transformers import RobertaConfig, GPT2Config, GPTJConfig
+from transformers import TrainingArguments, AutoConfig, RobertaConfig, GPT2Config, GPTJConfig
 from transformers import AutoModelWithLMHead, RobertaForMaskedLM, GPT2LMHeadModel, GPTJModel
-from transformers import RobertaTokenizerFast, GPT2TokenizerFast, DataCollatorForLanguageModeling, TrainingArguments
+from transformers import RobertaTokenizerFast, GPT2TokenizerFast, AutoTokenizer, DataCollatorForLanguageModeling
 from torch import cuda
 from json import load
 
 
-# # Settings # #
-with open("training-congifs/config-config.json", "r") as cf:
-    cfg = load(cf)
-
-# paths
-train_path = cfg["paths"]["train_path"].replace("%main_path%", cfg["paths"]["main_path"])
-dev_path = cfg["paths"]["dev_path"].replace("%main_path%", cfg["paths"]["main_path"])
-tokenizer_path = cfg["paths"]["tokenizer_path"].replace("%main_path%", cfg["paths"]["main_path"])
-model_folder = cfg["paths"]["model_folder"].replace("%main_path%", cfg["paths"]["main_path"])
-
-# model and training parameters
-model_type = cfg["training-options"]["model"]  # gpt2 roberta
-pretrained_model = cfg["training-options"]["pretrained"]
-resume = cfg["training-options"]["resume-from-checkpoint"]
-output_from_model = cfg["training-options"]["output_from_model"]
-
-# Training args fill
-training_args = TrainingArguments(
-    output_dir=model_folder,
-    overwrite_output_dir=True,
-    evaluation_strategy='epoch',
-
-    num_train_epochs=cfg["training-options"]["epochs"],
-    per_device_train_batch_size=cfg["training-options"]["batch_size"],
-    per_device_eval_batch_size=cfg["training-options"]["batch_size"],
-    save_steps=cfg["training-options"]["save_steps"],
-    save_total_limit=cfg["training-options"]["save_total"],
-    learning_rate=cfg["training-options"]["learning_rate"],
-    weight_decay=cfg["training-options"]["decay"],
-    warmup_steps=cfg["training-options"]["warmup_steps"],
-    remove_unused_columns=False
-)
-
-# misc
-encoded_file_keyword = cfg["misc"]["encoded_file_keyword"]
-device = "cuda:0" if cuda.is_available() else "cpu"
-
-with open("training-congifs/" + model_type + ".json", "r") as mf:
-    model_params = load(mf)
+def get_model(model_type, fast_tokenizer, model_params=None, pretrained=""):
+    if pretrained:
+        return AutoModelWithLMHead.from_pretrained(pretrained)
+    else:
+        if not model_params:
+            with open("training-congifs/" + model_type + ".json", "r") as mf:
+                model_params = load(mf)
+        return create_model(model_type, fast_tokenizer, model_params)
 
 
-# tokenizer dependent
-bos_token = 50259
-eos_token = 50260
-
-# Model initialization
-if pretrained_model:
-    model = AutoModelWithLMHead.from_pretrained(pretrained_model)
-else:
-    # Model configuration
+def create_model(model_type, fast_tokenizer, model_params):
     if "roberta" in model_type:
-        tokenizer = RobertaTokenizerFast(tokenizer_file=tokenizer_path,
-                                         pad_token="<pad>", unk_token="<unk>", mask_token="<mask>")
+        model_config = RobertaConfig(**model_params)
+    elif "gpt2" in model_type:
+        model_config = GPT2Config(**model_params)
+    elif "gptj" in model_type:
+        model_config = GPTJConfig(**model_params)
 
-        data_collator = DataCollatorForLanguageModeling(
+    else:
+        model_config = AutoConfig()
+
+    model_config.vocab_size = fast_tokenizer.vocab_size
+    model_config.bos_token_id = fast_tokenizer.bos_token_id
+    model_config.eos_token_id = fast_tokenizer.bos_token_id
+
+    if "roberta" in model_type:
+        return RobertaForMaskedLM(config=model_config)
+    elif "gpt2" in model_type:
+        return GPT2LMHeadModel.from_config(model_config)
+    elif "gptj" in model_type:
+        return GPTJModel.from_config(model_config)
+
+
+def load_tokenizer(model_type, tokenizer_path):
+    if "roberta" in model_type:
+        return RobertaTokenizerFast(tokenizer_file=tokenizer_path,
+                                    pad_token="<pad>", unk_token="<unk>", mask_token="<mask>")
+    elif "gpt" in model_options["model"]:
+        return GPT2TokenizerFast(tokenizer_file=tokenizer_path, padding=False,
+                                 pad_token="<pad>")
+    else:
+        return AutoTokenizer()
+
+
+def collator(model_type, fast_tokenizer):
+    if "roberta" in model_type:
+        return DataCollatorForLanguageModeling(
             mlm=True,
             mlm_probability=0.15,
-            tokenizer=tokenizer,
+            tokenizer=fast_tokenizer,
         )
-
-        model_config = RobertaConfig(**model_params)
-
     elif "gpt" in model_type:
-        tokenizer = GPT2TokenizerFast(tokenizer_file=tokenizer_path, padding=False, pad_token="a")
-
-        data_collator = DataCollatorForLanguageModeling(
-            tokenizer=tokenizer,
+        return DataCollatorForLanguageModeling(
+            tokenizer=fast_tokenizer,
             mlm=False,
         )
-
-        if "gpt2" in model_type:
-            model_config = GPT2Config(**model_params)
-        elif "gptj" in model_type:
-            model_config = GPTJConfig(**model_params)
-
-    model_config.vocab_size = tokenizer.vocab_size
-    model_config.bos_token_id = tokenizer.bos_token_id
-    model_config.eos_token_id = tokenizer.bos_token_id
-
-    if "roberta" in model_type:
-        model = RobertaForMaskedLM(config=model_config)
-    elif "gpt2" in model_type:
-        model = GPT2LMHeadModel.from_config(model_config)
-    elif "gptj" in model_type:
-        model = GPTJModel.from_config(model_config)
+    else:
+        return DataCollatorForLanguageModeling(
+            tokenizer=fast_tokenizer
+        )
 
 
+def load_configs(cfg=None, cfgpath="training-congifs/config.json"):
+    if not cfg:
+        with open(cfgpath, "r") as cf:
+            cfg = load(cf)
+
+    # paths
+    main_path = cfg["paths"]["main_path"]
+    paths = {x: process_path(y, "%main_path%", main_path) for (x, y) in cfg["paths"].items()}
+
+    # model and training parameters
+    model_options = cfg["model-options"]
+
+    training_options = cfg["training-options"]
+    training_options["output_dir"] = paths["model_folder"]
+    training_options["remove_unused_columns"] = False
+
+    # Training args fill
+    training_args = TrainingArguments(**training_options)
+    encoded_file_keyword = cfg["misc"]["encoded_file_keyword"]
+    default_gen_input = cfg["misc"]["default_gen_input"]
+    return paths, model_options, training_args, encoded_file_keyword, default_gen_input
+
+
+def process_path(path, key, replace_path):
+    if isinstance(path, str):
+        return path.replace(key, replace_path)
+    else:
+        results = []
+        for x in path:
+            results.append(path.replace(x, replace_path))
+        return results
+
+
+def get_examples(examples=None, examples_path="training-congifs/fill_mask_examples.json"):
+    if not examples:
+        with open(examples_path, "r") as ef:
+            examples = load(ef)
+    return examples
+
+
+paths, model_options, training_args, encoded_file_keyword, default_gen_input = load_configs()
+fill_test_examples = get_examples()
+tokenizer = load_tokenizer(model_options["model_type"], paths["tokenizer_path"])
+data_collator = collator(model_options["model_type"], tokenizer)
+model = get_model(model_options["model_type"], tokenizer)
+device = "cuda:0" if cuda.is_available() else "cpu"

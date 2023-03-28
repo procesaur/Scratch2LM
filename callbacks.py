@@ -1,7 +1,7 @@
 from test import test
-from transformers import DefaultFlowCallback, ProgressCallback
+from transformers import DefaultFlowCallback
 from transformers.trainer_callback import TrainerState, TrainerControl, TrainingArguments, IntervalStrategy
-from config import model_folder
+from config import paths
 
 
 class CustomDefaultFlowCallback(DefaultFlowCallback):
@@ -29,7 +29,7 @@ class CustomDefaultFlowCallback(DefaultFlowCallback):
             control.should_save = True
             examples = test(kwargs["model"])
             examples = [e for ee in examples for e in ee]
-            with open(model_folder + "/log", "a+", encoding="utf-8") as lf:
+            with open(paths["model_folder"] + "/experiments.log", "a+", encoding="utf-8") as lf:
                 lf.write("\t".join(examples))
                 lf.write("\n")
 

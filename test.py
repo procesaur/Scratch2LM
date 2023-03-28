@@ -1,17 +1,7 @@
 from transformers import pipeline
-from config import device, tokenizer, model_type
+from config import device, tokenizer, model_options, fill_test_examples, default_gen_input
 from random import randint
 from torch import randint as torch_rand
-
-
-# Test some examples
-fill_test_examples = [
-    "Ana ide u <mask>.",
-    "Osnovna <mask> Vuk Karadžić",
-    "Kupio sam dva <mask> i mleko."
-]
-
-default_gen_input = ""
 
 
 def fill_examples(mod, tok):
@@ -72,7 +62,7 @@ def generatetion_test(mod, tok, samples=3, length=24, context=default_gen_input,
 
 
 def test(mod, tok=tokenizer):
-    if model_type == "roberta":
+    if "roberta" in model_options["model_type"]:
         return fill_examples(mod, tok)
-    elif model_type == "gpt2":
+    elif "gpt" in model_options["model_type"]:
         return generatetion_test(mod, tok)

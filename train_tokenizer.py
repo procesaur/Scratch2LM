@@ -1,7 +1,9 @@
 from tokenizers import Tokenizer, models, pre_tokenizers, decoders, processors, trainers
 from os import listdir
-from config import tokenizer_path as train_path
+from config import paths
 
+
+train_path = paths["tokenizer_path"]
 
 # Initialize a tokenizer
 tokenizer = Tokenizer(models.BPE())
@@ -18,7 +20,6 @@ tokenizer_trainer = trainers.BpeTrainer(
     show_progress=True,
     special_tokens=["<s>", "<pad>", "</s>", "<unk>", "<mask>"],
 )
-
 
 tokenizer.train([train_path + x for x in listdir(train_path)], tokenizer_trainer)
 tokenizer.save(train_path + "tokenizer.json", pretty=True)
