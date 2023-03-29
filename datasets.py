@@ -3,6 +3,7 @@ from json import load, dump, loads
 from random import shuffle
 from torch import tensor
 from jsonlines import open as jlopen
+from itertools import chain
 
 
 class TextualDataset(Dataset):
@@ -28,13 +29,14 @@ class EncodedFiles2Dataset(Dataset):
         self.examples = []
         for file in files:
             with open(path + file, "r") as jf:
-                self.examples += load(jf)
+                if block:
+                    self.examples += list(self.split(list(chain(*load(jf))), block))
+                if not block and trim:
+                    self.examples += [x[:trim] for x in load(jf)]
+                if not block and not trim:
+                    self.examples += load(jf)
         if shfl:
             shuffle(self.examples)
-        if trim:
-            self.examples = [x[:trim] for x in self.examples]
-        if block:
-            self.examples = list(self.split(sum(self.examples, []), block))
 
     def __len__(self):
         return len(self.examples)
@@ -52,9 +54,9 @@ class EncodedFiles2Dataset(Dataset):
 
     def __jdumpwsplit__(self, path, dev_ratio=0.1):
         split_line = round(self.__len__() * dev_ratio)
-        with jlopen(path + "dev.json", "w") as jp:
+        with jlopen(path + "dev.jsonl", "w") as jp:
             jp.write_all(self.examples[:split_line])
-        with jlopen(path + "train.json", "w") as jp:
+        with jlopen(path + "train.jsonl", "w") as jp:
             jp.write_all(self.examples[split_line:])
 
 

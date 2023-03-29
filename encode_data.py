@@ -35,9 +35,9 @@ def encoded2datasets(path, files, trim=None, block=None, dev_ratio=0.1, shfl=Tru
         return dataset
 
 
-def multipleEncoded2datasets(path, trim=None, block=None):
+def multipleEncoded2datasets(path, trim=None, block=None, shfl=True):
     files = [x for x in listdir(path) if encoded_file_keyword in x]
-    encoded2datasets(path, files, save=True, trim=trim, block=block)
+    encoded2datasets(path, files, save=True, trim=trim, block=block, shfl=shfl)
 
 
 # json2dataset(path, file, tokenizer, save=True)
