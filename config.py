@@ -33,18 +33,17 @@ def create_model(model_type, fast_tokenizer, model_params):
     if "roberta" in model_type:
         return RobertaForMaskedLM(config=model_config)
     elif "gpt2" in model_type:
-        return GPT2LMHeadModel.from_config(model_config)
+        return GPT2LMHeadModel(config=model_config)
     elif "gptj" in model_type:
-        return GPTJModel.from_config(model_config)
+        return GPTJModel(config=model_config)
 
 
 def load_tokenizer(model_type, tokenizer_path):
     if "roberta" in model_type:
         return RobertaTokenizerFast(tokenizer_file=tokenizer_path,
                                     pad_token="<pad>", unk_token="<unk>", mask_token="<mask>")
-    elif "gpt" in model_options["model"]:
-        return GPT2TokenizerFast(tokenizer_file=tokenizer_path, padding=False,
-                                 pad_token="<pad>")
+    elif "gpt" in model_type:
+        return RobertaTokenizerFast(tokenizer_file=tokenizer_path, padding=False, pad_token="<pad>")
     else:
         return AutoTokenizer()
 

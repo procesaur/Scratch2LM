@@ -79,7 +79,7 @@ config = {
     }
 }
 
-model_config = {
+model_params = {
     "num_attention_heads": 12,
     "num_hidden_layers": 12,
     "hidden_size": 768,
@@ -129,16 +129,16 @@ def create_model(model_type, fast_tokenizer, model_params):
     if "roberta" in model_type:
         return RobertaForMaskedLM(config=model_config)
     elif "gpt2" in model_type:
-        return GPT2LMHeadModel.from_config(model_config)
+        return GPT2LMHeadModel(config=model_config)
     elif "gptj" in model_type:
-        return GPTJModel.from_config(model_config)
+        return GPTJModel(config=model_config)
 
 
 def load_tokenizer(model_type, tokenizer_path):
     if "roberta" in model_type:
         return RobertaTokenizerFast(tokenizer_file=tokenizer_path,
                                     pad_token="<pad>", unk_token="<unk>", mask_token="<mask>")
-    elif "gpt" in model_options["model"]:
+    elif "gpt" in model_type:
         return GPT2TokenizerFast(tokenizer_file=tokenizer_path, padding=False,
                                  pad_token="<pad>")
     else:
@@ -207,7 +207,7 @@ paths, model_options, training_args, encoded_file_keyword, default_gen_input = l
 fill_test_examples = get_examples(examples)
 tokenizer = load_tokenizer(model_options["model_type"], paths["tokenizer_path"])
 data_collator = collator(model_options["model_type"], tokenizer)
-model = get_model(model_options["model_type"], tokenizer, model_config)
+model = get_model(model_options["model_type"], tokenizer, model_params)
 device = "cuda:0" if cuda.is_available() else "cpu"
 
 
