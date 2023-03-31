@@ -46,12 +46,13 @@ If you hadn't mendled with the settings after the second step, just supply it wi
 1. Make sure that the parameters are set correctly in the [config.json](training-congifs/config.json), namely: (If you hadn't changed any of the params so far, you shouldn't need to change that at the moment)
     - path to your tokenizer, train and dev datasets: **tokenizer_path**, **train_path** and **dev_path** in **paths** section of the [config.json](training-congifs/config.json)
       as well as your **model_folder**, especially if you are continuing from a checkpoint
+    - in the same section you configure whether you are using a pretrained model by assigning a path (**pretrained**)
     - model type you want to train: **model_type** in [config.json](training-congifs/config.json), which should be one of the currently avaialble, and adequate model parameters can be found and adjusted in the [training config](training-congifs) folder.
          - gpt2-large
          - roberta-base
          - roberta-large
          - gptj
-    - in the same section you configure whether you are using a pretrained model (**pretrained**), if you want to resume from previous checkpoints (**resume-from-checkpoint**), and if you want to log model tests along the training (**output_from_modelt**)
+    - in the same section you can configure if you want to resume from previous checkpoints (**resume-from-checkpoint**), and if you want to log model tests along the training (**output_from_modelt**)
     - training parameters you want to use are set in the training-options section of [config.json](training-congifs/config.json)
 
 2. (optional, if you selected **true** for **output_from_modelt**) Set a list of sentences for masking fill test for BERT at by editing [fill_mask_examples.json](training-congifs/fill_mask_examples.json) or edit the defualt generation query for GPT by editing **default_gen_input** in the misc section of [config.json](training-congifs/config.json).

@@ -10,9 +10,9 @@ from torch.utils.data import Dataset
 from torch import tensor, cuda, randint as torch_rand
 
 from transformers import TrainingArguments, AutoConfig, RobertaConfig, GPT2Config, GPTJConfig
-from transformers import AutoModelWithLMHead, RobertaForMaskedLM, GPT2LMHeadModel, GPTJModel
-from transformers import RobertaTokenizerFast, GPT2TokenizerFast, AutoTokenizer, DataCollatorForLanguageModeling
-from transformers import DefaultFlowCallback, ProgressCallback
+from transformers import RobertaForMaskedLM, GPT2LMHeadModel, GPTJModel
+from transformers import RobertaTokenizerFast, AutoTokenizer, DataCollatorForLanguageModeling
+from transformers import DefaultFlowCallback
 from transformers.trainer_callback import TrainerState, TrainerControl, TrainingArguments, IntervalStrategy
 from transformers import pipeline, Trainer
 
@@ -70,7 +70,7 @@ config = {
         "save_total_limit": 1,
         "load_best_model_at_end": false,
         "overwrite_output_dir": true,
-        "evaluation_strategy": "epochs"
+        "evaluation_strategy": "epoch"
     },
 
     "misc": {
@@ -103,7 +103,13 @@ examples = [
 
 def get_model(model_type, fast_tokenizer, pretrained="", model_params=None):
     if pretrained:
-        return AutoModelWithLMHead.from_pretrained(pretrained)
+        if "roberta" in model_type:
+            return RobertaForMaskedLM.from_pretrained(pretrained)
+        elif "gpt2" in model_type:
+            return GPT2LMHeadModel.from_pretrained(pretrained)
+        elif "gptj" in model_type:
+            return GPTJModel.from_pretrained(pretrained)
+
     else:
         if not model_params:
             with open("training-congifs/" + model_type + ".json", "r") as mf:
@@ -139,8 +145,7 @@ def load_tokenizer(model_type, tokenizer_path):
         return RobertaTokenizerFast(tokenizer_file=tokenizer_path,
                                     pad_token="<pad>", unk_token="<unk>", mask_token="<mask>")
     elif "gpt" in model_type:
-        return GPT2TokenizerFast(tokenizer_file=tokenizer_path, padding=False,
-                                 pad_token="<pad>")
+        return RobertaTokenizerFast(tokenizer_file=tokenizer_path, padding=False, pad_token="<pad>")
     else:
         return AutoTokenizer()
 
@@ -170,20 +175,20 @@ def load_configs(cfg=None, cfgpath="training-congifs/config.json"):
 
     # paths
     main_path = cfg["paths"]["main_path"]
-    paths = {x: process_path(y, "%main_path%", main_path) for (x, y) in cfg["paths"].items()}
+    newpaths = {x: process_path(y, "%main_path%", main_path) for (x, y) in cfg["paths"].items()}
 
     # model and training parameters
-    model_options = cfg["model-options"]
+    options = cfg["model-options"]
 
     training_options = cfg["training-options"]
-    training_options["output_dir"] = paths["model_folder"]
+    training_options["output_dir"] = newpaths["model_folder"]
     training_options["remove_unused_columns"] = False
 
     # Training args fill
-    training_args = TrainingArguments(**training_options)
-    encoded_file_keyword = cfg["misc"]["encoded_file_keyword"]
-    default_gen_input = cfg["misc"]["default_gen_input"]
-    return paths, model_options, training_args, encoded_file_keyword, default_gen_input
+    args = TrainingArguments(**training_options)
+    efk = cfg["misc"]["encoded_file_keyword"]
+    default_input = cfg["misc"]["default_gen_input"]
+    return newpaths, options, args, efk, default_input
 
 
 def process_path(path, key, replace_path):
