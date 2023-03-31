@@ -47,12 +47,12 @@ config = {
         "train_path": "%main_path%/mini_train.jsonl",
         "dev_path": "%main_path%/mini_dev.jsonl",
         "tokenizer_path": "%main_path%/tokenizer.json",
-        "model_folder": "saved"
+        "model_folder": "saved",
+        "pretrained": ""
     },
 
     "model-options": {
         "model_type": "roberta-base",
-        "pretrained": "",
         "resume-from-checkpoint": false,
         "output_from_model": true
     },
@@ -65,12 +65,12 @@ config = {
         "weight_decay": 0.1,
         "warmup_steps": 2000,
 
-        "save_steps": 100000,
+        "save_steps": 50000,
         "eval_steps": 50000,
         "save_total_limit": 1,
-        "load_best_model_at_end": true,
+        "load_best_model_at_end": false,
         "overwrite_output_dir": true,
-        "evaluation_strategy": "steps"
+        "evaluation_strategy": "epochs"
     },
 
     "misc": {
@@ -101,7 +101,7 @@ examples = [
 ]
 
 
-def get_model(model_type, fast_tokenizer, model_params=None, pretrained=""):
+def get_model(model_type, fast_tokenizer, pretrained="", model_params=None):
     if pretrained:
         return AutoModelWithLMHead.from_pretrained(pretrained)
     else:
@@ -192,7 +192,7 @@ def process_path(path, key, replace_path):
     else:
         results = []
         for x in path:
-            results.append(path.replace(x, replace_path))
+            results.append(x.replace(key, replace_path))
         return results
 
 
@@ -207,7 +207,7 @@ paths, model_options, training_args, encoded_file_keyword, default_gen_input = l
 fill_test_examples = get_examples(examples)
 tokenizer = load_tokenizer(model_options["model_type"], paths["tokenizer_path"])
 data_collator = collator(model_options["model_type"], tokenizer)
-model = get_model(model_options["model_type"], tokenizer, model_params)
+model = get_model(model_options["model_type"], tokenizer, paths["pretrained"], model_params)
 device = "cuda:0" if cuda.is_available() else "cpu"
 
 

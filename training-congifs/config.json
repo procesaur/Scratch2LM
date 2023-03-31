@@ -4,12 +4,12 @@
     "train_path" : "%main_path%/mini_train.jsonl",
     "dev_path" : "%main_path%/mini_dev.jsonl",
     "tokenizer_path" :"%main_path%/tokenizer.json",
-    "model_folder" : "saved"
+    "model_folder" : "saved",
+    "pretrained" : ""
   },
 
   "model-options": {
     "model_type" : "roberta-base",
-    "pretrained" : "",
     "resume-from-checkpoint": false,
     "output_from_model": true
   },
