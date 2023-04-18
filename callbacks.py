@@ -28,7 +28,8 @@ class CustomDefaultFlowCallback(DefaultFlowCallback):
         ):
             control.should_save = True
             examples = test(kwargs["model"])
-            examples = [e for ee in examples for e in ee]
+            if not isinstance(examples[0], str):
+                examples = [e for ee in examples for e in ee]
             with open(paths["model_folder"] + "/experiments.log", "a+", encoding="utf-8") as lf:
                 lf.write("\t".join(examples))
                 lf.write("\n")

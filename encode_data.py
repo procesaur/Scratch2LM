@@ -40,5 +40,5 @@ def multipleEncoded2datasets(path, trim=None, block=None, shfl=True):
     encoded2datasets(path, files, save=True, trim=trim, block=block, shfl=shfl)
 
 
-# json2dataset(path, file, tokenizer, save=True)
+multipleJson2dataset("D:/korpusi/json/novo/")
 # multipleEncoded2datasets(path, trim=512)
