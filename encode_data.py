@@ -17,6 +17,11 @@ def json2dataset(path, file, tokenizer, save=False, attr="sents", save_path=None
         return dataset
 
 
+def json2sents(path, attr="sents"):
+    with open(path, "r", encoding="utf-8") as jf:
+        return load(jf)[attr]
+
+
 def multipleJson2dataset(path):
     for file in [x for x in listdir(path) if encoded_file_keyword not in x and ".json" in x]:
         print(file)
@@ -40,5 +45,5 @@ def multipleEncoded2datasets(path, trim=None, block=None, shfl=True):
     encoded2datasets(path, files, save=True, trim=trim, block=block, shfl=shfl)
 
 
-multipleJson2dataset("D:/korpusi/json/novo/")
+# multipleJson2dataset("D:/korpusi/json/novo/")
 # multipleEncoded2datasets(path, trim=512)

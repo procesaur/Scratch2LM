@@ -87,12 +87,14 @@ def load_configs(cfg=None, cfgpath="training-congifs/config.json"):
     training_options = cfg["training-options"]
     training_options["output_dir"] = newpaths["model_folder"]
     training_options["remove_unused_columns"] = False
+    tokenizer_training = cfg["tokenizer_training"]
 
     # Training args fill
     args = TrainingArguments(**training_options)
     efk = cfg["misc"]["encoded_file_keyword"]
     default_input = cfg["misc"]["default_gen_input"]
-    return newpaths, options, args, efk, default_input
+
+    return newpaths, options, args, efk, default_input, tokenizer_training
 
 
 def process_path(path, key, replace_path):
@@ -112,7 +114,7 @@ def get_examples(examples=None, examples_path="training-congifs/fill_mask_exampl
     return examples
 
 
-paths, model_options, training_args, encoded_file_keyword, default_gen_input = load_configs()
+paths, model_options, training_args, encoded_file_keyword, default_gen_input, tokenizer_training = load_configs()
 fill_test_examples = get_examples()
 tokenizer = load_tokenizer(model_options["model_type"], paths["tokenizer_path"])
 data_collator = collator(model_options["model_type"], tokenizer)

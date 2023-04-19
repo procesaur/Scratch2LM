@@ -1,25 +1,66 @@
-from tokenizers import Tokenizer, models, pre_tokenizers, decoders, processors, trainers
-from os import listdir
-from config import paths
+from tokenizers import Tokenizer, pre_tokenizers, decoders, processors
+from tokenizers.trainers import BpeTrainer, WordPieceTrainer
+from tokenizers.models import BPE, WordPiece
+from os import listdir, path as px
+from encode_data import json2sents
+from tqdm import tqdm
+from json import load
 
 
-train_path = paths["tokenizer_path"]
-
-# Initialize a tokenizer
-tokenizer = Tokenizer(models.BPE())
-
-tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=True)
-tokenizer.decoder = decoders.ByteLevel()
-tokenizer.post_processor = processors.ByteLevel(trim_offsets=True)
+def load_configs(cfg=None, cfgpath="training-congifs/config.json"):
+    if not cfg:
+        with open(cfgpath, "r") as cf:
+            cfg = load(cf)
+    return cfg["tokenizer_training"]
 
 
-tokenizer_trainer = trainers.BpeTrainer(
-    vocab_size=32786,
-    min_frequency=2,
-    initial_alphabet=pre_tokenizers.ByteLevel.alphabet(),
-    show_progress=True,
-    special_tokens=["<s>", "<pad>", "</s>", "<unk>", "<mask>"],
-)
+cfg = load_configs()
 
-tokenizer.train([train_path + x for x in listdir(train_path)], tokenizer_trainer)
-tokenizer.save(train_path + "tokenizer.json", pretty=True)
+
+def get_sents(files):
+    print("files: " + str(len(files)))
+    sentences = []
+    for file in tqdm(files):
+        try:
+            sentences += json2sents(file)
+        except:
+            print(file)
+    print("sentences: " + str(len(sentences)))
+
+
+def train_a_tokenizer(path=cfg["path"]):
+    special_tokens = cfg["special_tokens"]
+    unk_token = cfg["unk_token"]
+
+    # Initialize a tokenizer
+    if cfg["type"] == "BPE":
+        tokenizer = Tokenizer(BPE(unk_token=unk_token))
+
+        tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=True)
+        tokenizer.decoder = decoders.ByteLevel()
+        tokenizer.post_processor = processors.ByteLevel(trim_offsets=True)
+
+        tokenizer_trainer = BpeTrainer(
+            vocab_size=cfg["size"],
+            min_frequency=cfg["freq"],
+            initial_alphabet=pre_tokenizers.ByteLevel.alphabet(),
+            show_progress=True,
+            special_tokens=special_tokens
+        )
+
+    else:
+        tokenizer = Tokenizer(WordPiece(unk_token=unk_token))
+        tokenizer_trainer = WordPieceTrainer(
+            vocab_size=cfg["size"],
+            min_frequency=cfg["freq"],
+            initial_alphabet=pre_tokenizers.ByteLevel.alphabet(),
+            show_progress=True,
+            special_tokens=special_tokens,
+        )
+
+    files = [path + x for x in listdir(path) if px.isfile(path + x) and x.endswith(".json")]
+    tokenizer.train_from_iterator(get_sents(files), tokenizer_trainer)
+    tokenizer.save(path + "tokenizer.json", pretty=True)
+
+
+train_a_tokenizer()
