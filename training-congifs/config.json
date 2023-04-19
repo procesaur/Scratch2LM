@@ -15,9 +15,9 @@
   },
 
   "training-options": {
-    "num_train_epochs" : 3,
-    "per_device_train_batch_size" : 12,
-    "per_device_eval_batch_size" : 12,
+    "num_train_epochs" : 2,
+    "per_device_train_batch_size" : 8,
+    "per_device_eval_batch_size" : 8,
     "learning_rate" : 0.00005,
     "weight_decay" : 0,
     "warmup_steps" : 2000,

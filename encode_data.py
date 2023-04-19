@@ -2,6 +2,7 @@ from datasets import TextualDataset, EncodedFiles2Dataset
 from json import load
 from os import listdir
 from config import tokenizer, encoded_file_keyword
+from tqdm import tqdm
 
 
 def json2dataset(path, file, tokenizer, save=False, attr="sents", save_path=None):
@@ -23,27 +24,29 @@ def json2sents(path, attr="sents"):
 
 
 def multipleJson2dataset(path):
-    for file in [x for x in listdir(path) if encoded_file_keyword not in x and ".json" in x]:
-        print(file)
+    files = [x for x in listdir(path) if encoded_file_keyword not in x and ".json" in x]
+    for file in tqdm(files, total=len(files)):
         json2dataset(path, file, tokenizer, save=True)
 
 
-def encoded2datasets(path, files, trim=None, block=None, dev_ratio=0.1, shfl=True, save=False, save_path=None):
-
-    if save_path is None:
-        save_path = path
+def encoded2datasets(path, files, trim=None, block=None, dev_ratio=0.1,
+                     shfl=False, save=False, save_path=None, name=""):
 
     dataset = EncodedFiles2Dataset(path, files, shfl, trim=trim, block=block)
     if save:
-        dataset.__jdumpwsplit__(save_path, dev_ratio)
+        if save_path is None:
+            save_path = path
+        dataset.__jdumpwsplit__(save_path, dev_ratio, name=name)
     else:
         return dataset
 
 
-def multipleEncoded2datasets(path, trim=None, block=None, shfl=True):
+def multipleEncoded2datasets(path, trim=None, block=None, shfl=False, name=""):
     files = [x for x in listdir(path) if encoded_file_keyword in x]
-    encoded2datasets(path, files, save=True, trim=trim, block=block, shfl=shfl)
+    encoded2datasets(path, files, save=True, trim=trim, block=block, shfl=shfl, name=name)
 
 
-# multipleJson2dataset("D:/korpusi/json/novo/")
-# multipleEncoded2datasets(path, trim=512)
+path_to_files = "C:/gpt2/korpusi/tajno/"
+multipleJson2dataset(path_to_files)
+multipleEncoded2datasets(path_to_files, trim=512, name="_bert-p")
+multipleEncoded2datasets(path_to_files, block=128, name="_gpt-p")

@@ -1,11 +1,5 @@
-#!/usr/bin/env python
-# coding: utf-8
-# get_ipython().system('pip install transformers')
-# get_ipython().system('pip install --upgrade ipywidgets')
-
 from json import loads, load
 from random import randint
-
 from torch.utils.data import Dataset
 from torch import tensor, cuda, randint as torch_rand
 
@@ -42,56 +36,50 @@ false = False
 true = True
 
 config = {
-    "paths": {
-        "main_path": "C:/Users/Administrator/Desktop/training",
-        "train_path": "%main_path%/mini_train.jsonl",
-        "dev_path": "%main_path%/mini_dev.jsonl",
-        "tokenizer_path": "%main_path%/tokenizer.json",
-        "model_folder": "saved",
-        "pretrained": ""
-    },
+  "paths" : {
+    "main_path" : "data",
+    "train_path" : "%main_path%/mini_train.jsonl",
+    "dev_path" : "%main_path%/mini_dev.jsonl",
+    "tokenizer_path" :"%main_path%/tokenizer.json",
+    "model_folder" : "saved",
+    "pretrained" : ""
+  },
 
-    "model-options": {
-        "model_type": "roberta-base",
-        "resume-from-checkpoint": false,
-        "output_from_model": true
-    },
+  "model-options": {
+    "model_type" : "roberta-base",
+    "resume-from-checkpoint": false,
+    "output_from_model": true
+  },
 
-    "training-options": {
-        "num_train_epochs": 3,
-        "per_device_train_batch_size": 2,
-        "per_device_eval_batch_size": 2,
-        "learning_rate": 0.00008,
-        "weight_decay": 0.1,
-        "warmup_steps": 2000,
+  "training-options": {
+    "num_train_epochs" : 2,
+    "per_device_train_batch_size" : 8,
+    "per_device_eval_batch_size" : 8,
+    "learning_rate" : 0.00005,
+    "weight_decay" : 0,
+    "warmup_steps" : 2000,
 
-        "save_steps": 50000,
-        "eval_steps": 50000,
-        "save_total_limit": 1,
-        "load_best_model_at_end": false,
-        "overwrite_output_dir": true,
-        "evaluation_strategy": "epoch"
-    },
+    "save_steps" : 50000,
+    "eval_steps" : 50000,
+    "save_total_limit" : 1,
+    "load_best_model_at_end" : false,
+    "overwrite_output_dir" : true,
+    "evaluation_strategy" : "epoch"
+  },
 
-    "misc": {
-        "encoded_file_keyword": "_encoded_",
-        "default_gen_input": ""
-    }
-}
+  "misc": {
+      "encoded_file_keyword" : "_encoded_",
+      "default_gen_input" : ""
+  },
 
-model_params = {
-    "num_attention_heads": 12,
-    "num_hidden_layers": 12,
-    "hidden_size": 768,
-
-    "max_position_embeddings": 514,
-    "type_vocab_size": 1,
-    "attention_probs_dropout_prob": 0.1,
-    "hidden_act": "gelu",
-    "hidden_dropout_prob": 0.1,
-    "initializer_range": 0.02,
-    "intermediate_size": 4096,
-    "layer_norm_eps": 0.00001
+  "tokenizer_training": {
+    "path" : "C:/gpt2/tokenizer/",
+    "size": 49152,
+    "freq": 2,
+    "special_tokens": ["<s>", "<pad>", "</s>", "<unk>", "<mask>"],
+    "unk_token": "<UNK>",
+    "type": "BPE"
+  }
 }
 
 examples = [
@@ -183,12 +171,14 @@ def load_configs(cfg=None, cfgpath="training-congifs/config.json"):
     training_options = cfg["training-options"]
     training_options["output_dir"] = newpaths["model_folder"]
     training_options["remove_unused_columns"] = False
+    tokenizer_training = cfg["tokenizer_training"]
 
     # Training args fill
     args = TrainingArguments(**training_options)
     efk = cfg["misc"]["encoded_file_keyword"]
     default_input = cfg["misc"]["default_gen_input"]
-    return newpaths, options, args, efk, default_input
+
+    return newpaths, options, args, efk, default_input, tokenizer_training
 
 
 def process_path(path, key, replace_path):
@@ -208,11 +198,11 @@ def get_examples(examples=None, examples_path="training-congifs/fill_mask_exampl
     return examples
 
 
-paths, model_options, training_args, encoded_file_keyword, default_gen_input = load_configs(config)
-fill_test_examples = get_examples(examples)
+paths, model_options, training_args, encoded_file_keyword, default_gen_input, tokenizer_training = load_configs()
+fill_test_examples = get_examples()
 tokenizer = load_tokenizer(model_options["model_type"], paths["tokenizer_path"])
 data_collator = collator(model_options["model_type"], tokenizer)
-model = get_model(model_options["model_type"], tokenizer, paths["pretrained"], model_params)
+model = get_model(model_options["model_type"], tokenizer, paths["pretrained"])
 device = "cuda:0" if cuda.is_available() else "cpu"
 
 
@@ -232,6 +222,7 @@ def fill_examples(mod, tok):
 
 
 def generate(model, context, length=20, temperature=0.75):
+
     encoded_input = context.to(device)
     output = model.generate(
         **encoded_input,
@@ -244,12 +235,13 @@ def generate(model, context, length=20, temperature=0.75):
         # top_p=0.95,
         num_return_sequences=1,
         pad_token_id=0
-    )
+        )
 
     return output
 
 
 def generatetion_test(mod, tok, samples=3, length=24, context=default_gen_input, temp=0.75):
+
     outs = []
     if context == "":
         tokens = torch_rand(low=260, high=52000, size=(1,))
@@ -259,7 +251,7 @@ def generatetion_test(mod, tok, samples=3, length=24, context=default_gen_input,
     cl = context.data["input_ids"].size()[1]
 
     for x in range(samples):
-        output = generate(mod, context=context, length=length + cl, temperature=temp)
+        output = generate(mod, context=context, length=length+cl, temperature=temp)
 
         decoded_output = []
         for sample in output:
@@ -288,21 +280,22 @@ class CustomDefaultFlowCallback(DefaultFlowCallback):
 
         # Evaluate
         if (
-                args.evaluation_strategy == IntervalStrategy.STEPS
-                and state.global_step % args.eval_steps == 0
-                and args.eval_delay <= state.global_step
+            args.evaluation_strategy == IntervalStrategy.STEPS
+            and state.global_step % args.eval_steps == 0
+            and args.eval_delay <= state.global_step
         ):
             control.should_evaluate = True
 
         # Save
         if (
-                args.save_strategy == IntervalStrategy.STEPS
-                and args.save_steps > 0
-                and state.global_step % args.save_steps == 0
+            args.save_strategy == IntervalStrategy.STEPS
+            and args.save_steps > 0
+            and state.global_step % args.save_steps == 0
         ):
             control.should_save = True
             examples = test(kwargs["model"])
-            examples = [e for ee in examples for e in ee]
+            if not isinstance(examples[0], str):
+                examples = [e for ee in examples for e in ee]
             with open(paths["model_folder"] + "/experiments.log", "a+", encoding="utf-8") as lf:
                 lf.write("\t".join(examples))
                 lf.write("\n")
@@ -314,8 +307,8 @@ class CustomDefaultFlowCallback(DefaultFlowCallback):
         return control
 
 
-eval_dataset = JsonDataset(paths["dev_path"])
 train_dataset = JsonDataset(paths["train_path"])
+eval_dataset = JsonDataset(paths["dev_path"])
 
 trainer = Trainer(
     model=model,
@@ -323,10 +316,12 @@ trainer = Trainer(
     data_collator=data_collator,
     train_dataset=train_dataset,
     eval_dataset=eval_dataset,
+    # prediction_loss_only=True,
 )
 
 if model_options["output_from_model"]:
     trainer.remove_callback(DefaultFlowCallback)
     trainer.add_callback(CustomDefaultFlowCallback)
 
+# Train the model
 trainer.train(resume_from_checkpoint=model_options["resume-from-checkpoint"])
