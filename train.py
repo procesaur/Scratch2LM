@@ -17,9 +17,8 @@ trainer = Trainer(
     # prediction_loss_only=True,
 )
 
-if model_options["output_from_model"]:
-    trainer.remove_callback(DefaultFlowCallback)
-    trainer.add_callback(CustomDefaultFlowCallback)
+trainer.remove_callback(DefaultFlowCallback)
+trainer.add_callback(CustomDefaultFlowCallback)
 
 # Train the model
 trainer.train(resume_from_checkpoint=model_options["resume-from-checkpoint"])

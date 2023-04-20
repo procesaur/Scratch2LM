@@ -11,7 +11,8 @@
   "model-options": {
     "model_type" : "roberta-base",
     "resume-from-checkpoint": false,
-    "output_from_model": true
+    "output_from_model": true,
+    "save_each_epoch": true
   },
 
   "training-options": {

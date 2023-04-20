@@ -1,7 +1,7 @@
 from json import loads, load
 from random import randint
 from torch.utils.data import Dataset
-from torch import tensor, cuda, randint as torch_rand
+from torch import tensor, cuda, randint as torch_rand, save
 
 from transformers import TrainingArguments, AutoConfig, RobertaConfig, GPT2Config, GPTJConfig
 from transformers import RobertaForMaskedLM, GPT2LMHeadModel, GPTJModel
@@ -36,17 +36,17 @@ false = False
 true = True
 
 config = {
-  "paths" : {
-    "main_path" : "data",
-    "train_path" : "%main_path%/mini_train.jsonl",
-    "dev_path" : "%main_path%/mini_dev.jsonl",
-    "tokenizer_path" :"%main_path%/tokenizer.json",
-    "model_folder" : "saved",
-    "pretrained" : ""
+  "paths": {
+    "main_path": "data",
+    "train_path": "%main_path%/mini_train.jsonl",
+    "dev_path": "%main_path%/mini_dev.jsonl",
+    "tokenizer_path":"%main_path%/tokenizer.json",
+    "model_folder": "saved",
+    "pretrained": ""
   },
 
   "model-options": {
-    "model_type" : "roberta-base",
+    "model_type": "roberta-base",
     "resume-from-checkpoint": false,
     "output_from_model": true
   },
@@ -55,21 +55,21 @@ config = {
     "num_train_epochs" : 2,
     "per_device_train_batch_size" : 8,
     "per_device_eval_batch_size" : 8,
-    "learning_rate" : 0.00005,
-    "weight_decay" : 0,
-    "warmup_steps" : 2000,
+    "learning_rate": 0.00005,
+    "weight_decay": 0,
+    "warmup_steps": 2000,
 
-    "save_steps" : 50000,
-    "eval_steps" : 50000,
-    "save_total_limit" : 1,
-    "load_best_model_at_end" : false,
-    "overwrite_output_dir" : true,
-    "evaluation_strategy" : "epoch"
+    "save_steps": 50000,
+    "eval_steps": 50000,
+    "save_total_limit": 1,
+    "load_best_model_at_end": false,
+    "overwrite_output_dir": true,
+    "evaluation_strategy": "epoch"
   },
 
   "misc": {
-      "encoded_file_keyword" : "_encoded_",
-      "default_gen_input" : ""
+      "encoded_file_keyword": "_encoded_",
+      "default_gen_input": ""
   },
 
   "tokenizer_training": {
@@ -271,6 +271,25 @@ def test(mod, tok=tokenizer):
 
 
 class CustomDefaultFlowCallback(DefaultFlowCallback):
+    def on_epoch_end(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
+        # Log
+        if args.logging_strategy == IntervalStrategy.EPOCH:
+            control.should_log = True
+
+        # Evaluate
+        if args.evaluation_strategy == IntervalStrategy.EPOCH and args.eval_delay <= state.epoch:
+            control.should_evaluate = True
+
+        # Save
+        if args.save_strategy == IntervalStrategy.EPOCH:
+            control.should_save = True
+
+        # Save model?
+        if model_options["save_each_epoch"]:
+            save(kwargs["model"], paths["model_folder"] + "/epoch_" + str(state.epoch))
+
+        return control
+
     def on_step_end(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
         # Log
         if state.global_step == 1 and args.logging_first_step:
@@ -293,12 +312,15 @@ class CustomDefaultFlowCallback(DefaultFlowCallback):
             and state.global_step % args.save_steps == 0
         ):
             control.should_save = True
-            examples = test(kwargs["model"])
-            if not isinstance(examples[0], str):
-                examples = [e for ee in examples for e in ee]
-            with open(paths["model_folder"] + "/experiments.log", "a+", encoding="utf-8") as lf:
-                lf.write("\t".join(examples))
-                lf.write("\n")
+
+            # Perform Experiment?
+            if model_options["output_from_model"]:
+                examples = test(kwargs["model"])
+                if not isinstance(examples[0], str):
+                    examples = [e for ee in examples for e in ee]
+                with open(paths["model_folder"] + "/experiments.log", "a+", encoding="utf-8") as lf:
+                    lf.write("\t".join(examples))
+                    lf.write("\n")
 
         # End training
         if state.global_step >= state.max_steps:
@@ -319,9 +341,8 @@ trainer = Trainer(
     # prediction_loss_only=True,
 )
 
-if model_options["output_from_model"]:
-    trainer.remove_callback(DefaultFlowCallback)
-    trainer.add_callback(CustomDefaultFlowCallback)
+trainer.remove_callback(DefaultFlowCallback)
+trainer.add_callback(CustomDefaultFlowCallback)
 
 # Train the model
 trainer.train(resume_from_checkpoint=model_options["resume-from-checkpoint"])
