@@ -1,10 +1,10 @@
 {
   "paths" : {
     "main_path" : "data",
-    "train_path" : "%main_path%/mini_train.jsonl",
-    "dev_path" : "%main_path%/mini_dev.jsonl",
+    "train_path" : "%main_path%/train_mini_bert.jsonl",
+    "dev_path" : "%main_path%/dev_mini_bert.jsonl",
     "tokenizer_path" :"%main_path%/tokenizer.json",
-    "model_folder" : "saved",
+    "model_folder" : "%main_path%/saved",
     "pretrained" : ""
   },
 
