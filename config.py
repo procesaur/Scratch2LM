@@ -1,6 +1,6 @@
-from transformers import TrainingArguments, AutoConfig, RobertaConfig, GPT2Config, GPTJConfig
-from transformers import RobertaForMaskedLM, GPT2LMHeadModel, GPTJModel
-from transformers import RobertaTokenizerFast, AutoTokenizer, DataCollatorForLanguageModeling
+from transformers import TrainingArguments, AutoConfig, RobertaConfig, GPT2Config, GPTJConfig, T5Config
+from transformers import RobertaForMaskedLM, GPT2LMHeadModel, GPTJModel, T5Model
+from transformers import RobertaTokenizerFast, AutoTokenizer, DataCollatorForLanguageModeling, T5TokenizerFast
 from torch import cuda
 from json import load
 
@@ -16,7 +16,7 @@ def get_model(model_type, fast_tokenizer, pretrained="", model_params=None):
 
     else:
         if not model_params:
-            with open("training-congifs/" + model_type + ".json", "r") as mf:
+            with open("training-congifs/" + model_type + ".json", "r", encoding="utf-8") as mf:
                 model_params = load(mf)
         return create_model(model_type, fast_tokenizer, model_params)
 
@@ -74,7 +74,7 @@ def collator(model_type, fast_tokenizer):
 
 def load_configs(cfg=None, cfgpath="training-congifs/config.json"):
     if not cfg:
-        with open(cfgpath, "r") as cf:
+        with open(cfgpath, "r", encoding="utf-8") as cf:
             cfg = load(cf)
 
     # paths
@@ -109,7 +109,7 @@ def process_path(path, key, replace_path):
 
 def get_examples(examples=None, examples_path="training-congifs/fill_mask_examples.json"):
     if not examples:
-        with open(examples_path, "r") as ef:
+        with open(examples_path, "r", encoding="utf-8") as ef:
             examples = load(ef)
     return examples
 

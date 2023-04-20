@@ -20,7 +20,7 @@ class TextualDataset(Dataset):
         return tensor(self.examples[i])
 
     def __jdump__(self, path):
-        with open(path, "w") as jp:
+        with open(path, "w", encoding="utf-8") as jp:
             dump(self.examples, jp)
 
 
@@ -28,7 +28,7 @@ class EncodedFiles2Dataset(Dataset):
     def __init__(self, path, files, shfl=True, trim=None, block=None):
         self.examples = []
         for file in files:
-            with open(path + file, "r") as jf:
+            with open(path + file, "r", encoding="utf-8") as jf:
                 if block:
                     self.examples += list(self.split(list(chain(*load(jf))), block))
                 if not block and trim:
@@ -49,14 +49,14 @@ class EncodedFiles2Dataset(Dataset):
         return tensor(self.examples[i])
 
     def __jdump__(self, path):
-        with open(path, "w") as jp:
+        with open(path, "w", encoding="utf-8") as jp:
             dump(self.examples, jp)
 
     def __jdumpwsplit__(self, path, dev_ratio=0.1):
         split_line = round(self.__len__() * dev_ratio)
-        with jlopen(path + "dev.jsonl", "w") as jp:
+        with jlopen(path + "dev.jsonl", "w", encoding="utf-8") as jp:
             jp.write_all(self.examples[:split_line])
-        with jlopen(path + "train.jsonl", "w") as jp:
+        with jlopen(path + "train.jsonl", "w", encoding="utf-8") as jp:
             jp.write_all(self.examples[split_line:])
 
 

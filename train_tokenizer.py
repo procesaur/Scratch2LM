@@ -9,7 +9,7 @@ from json import load
 
 def load_configs(cfg=None, cfgpath="training-congifs/config.json"):
     if not cfg:
-        with open(cfgpath, "r") as cf:
+        with open(cfgpath, "r", encoding="utf-8") as cf:
             cfg = load(cf)
     return cfg["tokenizer_training"]
 
