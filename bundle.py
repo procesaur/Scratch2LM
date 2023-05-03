@@ -55,9 +55,9 @@ config = {
     "num_train_epochs": 2,
     "per_device_train_batch_size": 8,
     "per_device_eval_batch_size": 8,
-    "learning_rate": 0.00005,
-    "weight_decay": 0,
-    "warmup_steps": 2000,
+    "learning_rate": 0.000004,
+    "weight_decay": 0.01,
+    "warmup_steps": 0,
 
     "save_steps": 50000,
     "eval_steps": 50000,
@@ -83,9 +83,9 @@ config = {
 }
 
 examples = [
-    "Ana ide u <mask>.",
-    "Osnovna <mask> Vuk Karadžić",
-    "Kupio sam dva <mask> i mleko."
+    "Ana ide u<mask>.",
+    "Osnovna<mask> Vuk Karadžić",
+    "Kupio sam dva<mask> i mleko."
 ]
 
 
@@ -199,7 +199,7 @@ def get_examples(examples=None, examples_path="training-congifs/fill_mask_exampl
 
 
 paths, model_options, training_args, encoded_file_keyword, default_gen_input, tokenizer_training = load_configs(config)
-fill_test_examples = get_examples()
+fill_test_examples = get_examples(examples)
 tokenizer = load_tokenizer(model_options["model_type"], paths["tokenizer_path"])
 data_collator = collator(model_options["model_type"], tokenizer)
 model = get_model(model_options["model_type"], tokenizer, paths["pretrained"])
