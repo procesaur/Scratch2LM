@@ -10,7 +10,9 @@
 
   "model-options": {
     "model_type" : "roberta-base",
-    "tuning_task": "token-classification"
+    "tuning_task": "token-classification",
+    "token_col": "token",
+    "label_col": "ud"
   },
 
   "training-options": {

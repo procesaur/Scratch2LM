@@ -1,5 +1,4 @@
-from config import tuning_paths, tuning_tokenizer
-from config import tuning_collator, tuning_args
+from config import tuning_paths, tuning_tokenizer, tuning_collator, tuning_args, tuning_options
 import evaluate
 import numpy as np
 from transformers import Trainer, AutoModelForTokenClassification
@@ -54,9 +53,9 @@ def compute_metrics(p):
 
 
 def tokenize_and_align_labels(examples):
-    tokenized_inputs = tuning_tokenizer(examples["token"], truncation=True, is_split_into_words=True, padding=True)
+    tokenized_inputs = tuning_tokenizer(examples[tuning_options["token_col"]], truncation=True, is_split_into_words=True, padding=True)
     labels = []
-    for i, label in enumerate([map_labels(x, label2id) for x in examples[f"ud"]]):
+    for i, label in enumerate([map_labels(x, label2id) for x in examples[tuning_options["label_col"]]]):
         word_ids = tokenized_inputs.word_ids(batch_index=i)  # Map tokens to their respective word.
         previous_word_idx = None
         label_ids = []
