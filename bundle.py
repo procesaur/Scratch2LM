@@ -100,7 +100,7 @@ def get_model(model_type, fast_tokenizer, pretrained="", model_params=None):
 
     else:
         if not model_params:
-            with open("training-congifs/" + model_type + ".json", "r", encoding="utf-8") as mf:
+            with open("training-configs/" + model_type + ".json", "r", encoding="utf-8") as mf:
                 model_params = load(mf)
         return create_model(model_type, fast_tokenizer, model_params)
 
@@ -156,7 +156,7 @@ def collator(model_type, fast_tokenizer):
         )
 
 
-def load_configs(cfg=None, cfgpath="training-congifs/config.json"):
+def load_configs(cfg=None, cfgpath="training-configs/config.json"):
     if not cfg:
         with open(cfgpath, "r", encoding="utf-8") as cf:
             cfg = load(cf)
@@ -191,7 +191,7 @@ def process_path(path, key, replace_path):
         return results
 
 
-def get_examples(examples=None, examples_path="training-congifs/fill_mask_examples.json"):
+def get_examples(examples=None, examples_path="training-configs/fill_mask_examples.json"):
     if not examples:
         with open(examples_path, "r", encoding="utf-8") as ef:
             examples = load(ef)

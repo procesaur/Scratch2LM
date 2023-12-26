@@ -7,7 +7,7 @@ from tqdm import tqdm
 from json import load
 
 
-def load_configs(cfg=None, cfgpath="training-congifs/config.json"):
+def load_configs(cfg=None, cfgpath="training-configs/config.json"):
     if not cfg:
         with open(cfgpath, "r", encoding="utf-8") as cf:
             cfg = load(cf)

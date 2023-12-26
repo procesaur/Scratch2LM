@@ -1,4 +1,4 @@
-from datasets import JsonDataset
+from scratch_datasets import JsonDataset
 from config import paths, model, data_collator, training_args, model_options
 from callbacks import CustomDefaultFlowCallback, DefaultFlowCallback
 from transformers import Trainer

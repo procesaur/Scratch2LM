@@ -1,6 +1,7 @@
 from transformers import TrainingArguments, AutoConfig, RobertaConfig, GPT2Config, GPTJConfig, T5Config
 from transformers import RobertaForMaskedLM, GPT2LMHeadModel, GPTJModel, T5Model
-from transformers import RobertaTokenizerFast, AutoTokenizer, DataCollatorForLanguageModeling, T5TokenizerFast
+from transformers import RobertaTokenizerFast, AutoTokenizer, T5TokenizerFast
+from transformers import DataCollatorForTokenClassification, DataCollatorForLanguageModeling
 from torch import cuda
 from json import load
 
@@ -16,7 +17,7 @@ def get_model(model_type, fast_tokenizer, pretrained="", model_params=None):
 
     else:
         if not model_params:
-            with open("training-congifs/" + model_type + ".json", "r", encoding="utf-8") as mf:
+            with open("training-configs/" + model_type + ".json", "r", encoding="utf-8") as mf:
                 model_params = load(mf)
         return create_model(model_type, fast_tokenizer, model_params)
 
@@ -44,12 +45,21 @@ def create_model(model_type, fast_tokenizer, model_params):
         return GPTJModel(config=model_config)
 
 
-def load_tokenizer(model_type, tokenizer_path):
+def load_tokenizer(model_type, tokenizer_path, tuning=False):
     if "roberta" in model_type:
-        return RobertaTokenizerFast(tokenizer_file=tokenizer_path,
-                                    pad_token="<pad>", unk_token="<unk>", mask_token="<mask>")
+        if tuning:
+            return RobertaTokenizerFast(tokenizer_file=tokenizer_path, add_prefix_space=True, max_len=514,
+                                        pad_token="<pad>", unk_token="<unk>", mask_token="<mask>", pad_to_max_length=True)
+        else:
+            return RobertaTokenizerFast(tokenizer_file=tokenizer_path,
+                                        pad_token="<pad>", unk_token="<unk>", mask_token="<mask>")
     elif "gpt" in model_type:
-        return RobertaTokenizerFast(tokenizer_file=tokenizer_path, padding=False, pad_token="<pad>")
+        if tuning:
+            return RobertaTokenizerFast(tokenizer_file=tokenizer_path, add_prefix_space=True,
+                                        padding=False, pad_token="<pad>")
+        else:
+            return RobertaTokenizerFast(tokenizer_file=tokenizer_path,
+                                        padding=False, pad_token="<pad>")
     else:
         return AutoTokenizer()
 
@@ -72,7 +82,12 @@ def collator(model_type, fast_tokenizer):
         )
 
 
-def load_configs(cfg=None, cfgpath="training-congifs/config.json"):
+def tune_collator(tknzr, task=""):
+    if "token" in task:
+        return DataCollatorForTokenClassification(tokenizer=tknzr, padding=True)
+
+
+def load_configs(cfg=None, cfgpath="training-configs/config.json", tuning=False):
     if not cfg:
         with open(cfgpath, "r", encoding="utf-8") as cf:
             cfg = load(cf)
@@ -91,10 +106,13 @@ def load_configs(cfg=None, cfgpath="training-congifs/config.json"):
 
     # Training args fill
     args = TrainingArguments(**training_options)
-    efk = cfg["misc"]["encoded_file_keyword"]
-    default_input = cfg["misc"]["default_gen_input"]
+    if not tuning:
+        efk = cfg["misc"]["encoded_file_keyword"]
+        default_input = cfg["misc"]["default_gen_input"]
 
-    return newpaths, options, args, efk, default_input, tokenizer_training
+        return newpaths, options, args, efk, default_input, tokenizer_training
+    else:
+        return newpaths, options, args
 
 
 def process_path(path, key, replace_path):
@@ -107,7 +125,7 @@ def process_path(path, key, replace_path):
         return results
 
 
-def get_examples(examples=None, examples_path="training-congifs/fill_mask_examples.json"):
+def get_examples(examples=None, examples_path="training-configs/fill_mask_examples.json"):
     if not examples:
         with open(examples_path, "r", encoding="utf-8") as ef:
             examples = load(ef)
@@ -117,6 +135,12 @@ def get_examples(examples=None, examples_path="training-congifs/fill_mask_exampl
 paths, model_options, training_args, encoded_file_keyword, default_gen_input, tokenizer_training = load_configs()
 fill_test_examples = get_examples()
 tokenizer = load_tokenizer(model_options["model_type"], paths["tokenizer_path"])
+
 data_collator = collator(model_options["model_type"], tokenizer)
 model = get_model(model_options["model_type"], tokenizer, paths["pretrained"])
 device = "cuda:0" if cuda.is_available() else "cpu"
+
+
+tuning_paths, tuning_options, tuning_args = load_configs(cfgpath="training-configs/tuning_config.json", tuning=True)
+tuning_tokenizer = load_tokenizer(tuning_options["model_type"], tuning_paths["tokenizer_path"], tuning=True)
+tuning_collator = tune_collator(tuning_tokenizer, tuning_options["tuning_task"])

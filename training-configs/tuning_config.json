@@ -1,0 +1,40 @@
+{
+  "paths" : {
+    "main_path" : "data",
+    "train_path" : "%main_path%/train_SrpKor4Tagging.jsonl",
+    "dev_path" : "%main_path%/dev_SrpKor4Tagging.jsonl",
+    "tokenizer_path" :"%main_path%/tokenizer.json",
+    "model_folder" : "saved/tune-saved",
+    "pretrained" : "C:\\Users\\mihailo\\OneDrive - Faculty of Mining and Geology\\resursi\\bert modeli\\bertovic-base"
+  },
+
+  "model-options": {
+    "model_type" : "roberta-base",
+    "tuning_task": "token-classification"
+  },
+
+  "training-options": {
+    "num_train_epochs" : 2,
+    "per_device_train_batch_size" : 2,
+    "per_device_eval_batch_size" : 2,
+    "learning_rate" : 0.00005,
+    "weight_decay" : 0,
+    "warmup_steps" : 2000,
+
+    "save_steps" : 50000,
+    "eval_steps" : 50000,
+    "save_total_limit" : 1,
+    "load_best_model_at_end" : false,
+    "overwrite_output_dir" : true,
+    "evaluation_strategy" : "epoch"
+  },
+
+  "tokenizer_training": {
+    "path" : "C:/gpt2/tokenizer/",
+    "size": 49152,
+    "freq": 2,
+    "special_tokens": ["<s>", "<pad>", "</s>", "<unk>", "<mask>"],
+    "unk_token": "<UNK>",
+    "type": "BPE"
+  }
+}
