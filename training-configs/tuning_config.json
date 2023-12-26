@@ -5,7 +5,7 @@
     "dev_path" : "%main_path%/dev_SrpKor4Tagging.jsonl",
     "tokenizer_path" :"%main_path%/tokenizer.json",
     "model_folder" : "saved/tune-saved",
-    "pretrained" : "C:\\Users\\mihailo\\OneDrive - Faculty of Mining and Geology\\resursi\\bert modeli\\bertovic-base"
+    "pretrained" : ""
   },
 
   "model-options": {
