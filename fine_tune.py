@@ -1,20 +1,19 @@
-from config import tuning_paths, tuning_tokenizer, tuning_collator, tuning_args, tuning_options
+from config import tuning_paths, tuning_collator, tuning_args, tuning_options
 import evaluate
 import numpy as np
-from transformers import Trainer, AutoModelForTokenClassification, AutoTokenizer
+from transformers import Trainer, AutoModelForTokenClassification, AutoTokenizer, RobertaTokenizerFast
 from datasets import load_dataset
 
-tuning_dataset = load_dataset('json', data_files=tuning_paths["train_path"])
-eval_dataset = load_dataset('json', data_files=tuning_paths["dev_path"])
 
 x_models = [
-    tuning_paths["pretrained"]
+     tuning_paths["pretrained"]
 ]
 
-
 for x_model in x_models:
-    tuning_tokenizer = AutoTokenizer.from_pretrained(x_model)
-
+    tuning_tokenizer = RobertaTokenizerFast.from_pretrained(x_model, add_prefix_space=True, pad_to_max_length=True,
+                                                            pad_token="<pad>", unk_token="<unk>", mask_token="<mask>",
+                                                            max_len=256)
+    # tuning_tokenizer = AutoTokenizer.from_pretrained(x_model)
 
     label2id = {
         "ADJ": 0,
@@ -35,6 +34,9 @@ for x_model in x_models:
         "PRON": 15,
         "SCONJ": 16
     }
+
+    label2id = {'I-LOC': 0, 'B-PERS': 1, 'B-EVENT': 2, 'I-ORG': 3, 'B-LOC': 4, 'B-DEMO': 5, 'I-DEMO': 6, 'I-PERS': 7,
+         'I-WORK': 8, 'I-ROLE': 9, 'B-WORK': 10, 'I-EVENT': 11, 'B-ROLE': 12, 'B-ORG': 13, 'O': 14}
 
     label_list = list(label2id.keys())
     id2label = {v: k for k, v in label2id.items()}
@@ -94,12 +96,16 @@ for x_model in x_models:
         return results
 
 
-
+    tuning_dataset = load_dataset('json', data_files=tuning_paths["train_path"])
     original_columns = tuning_dataset["train"].column_names
+    tuning_dataset = tuning_dataset["train"].train_test_split(test_size=0.1, seed=0)
     tuning_dataset = tuning_dataset.map(tokenize_and_align_labels, batched=True)
-    eval_dataset = eval_dataset.map(tokenize_and_align_labels, batched=True)
+
+    # eval_dataset = load_dataset('json', data_files=tuning_paths["dev_path"])
+    # eval_dataset = tuning_dataset.map(tokenize_and_align_labels, batched=True)
+    eval_dataset = tuning_dataset["test"]
     tuning_dataset = tuning_dataset["train"].remove_columns(original_columns)
-    eval_dataset = eval_dataset["train"].remove_columns(original_columns)
+    eval_dataset = eval_dataset.remove_columns(original_columns)
 
     seqeval = evaluate.load("seqeval")
 
