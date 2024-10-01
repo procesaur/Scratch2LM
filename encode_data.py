@@ -1,4 +1,4 @@
-from datasets import TextualDataset, EncodedFiles2Dataset
+from scratch_datasets import TextualDataset, EncodedFiles2Dataset
 from json import load, loads
 from os import listdir
 from config import tokenizer, encoded_file_keyword

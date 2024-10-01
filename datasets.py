@@ -2,7 +2,6 @@ from torch.utils.data import Dataset
 from json import load, dump, loads
 from random import shuffle
 from torch import tensor
-from jsonlines import open as jlopen
 from itertools import chain
 from tqdm import tqdm
 
@@ -93,10 +92,14 @@ class EncodedFiles2Dataset(Dataset):
 
     def __jdumpwsplit__(self, path, dev_ratio=0.01, name=""):
         split_line = round(self.__len__() * dev_ratio)
-        with jlopen(path + "dev" + name + ".jsonl", "w") as jp:
-            jp.write_all(self.examples[:split_line])
-        with jlopen(path + "train" + name + ".jsonl", "w") as jp:
-            jp.write_all(self.examples[split_line:])
+        with open(path + "dev" + name + ".jsonl", "w") as jp:
+            for x in self.examples[:split_line]:
+                dump(x, jp)
+                jp.write("\n")
+        with open(path + "train" + name + ".jsonl", "w") as jp:
+            for x in self.examples[split_line:]:
+                dump(x, jp)
+                jp.write("\n")
 
 
 class JsonDataset(Dataset):
