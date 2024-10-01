@@ -14,7 +14,7 @@ inspiration : https://huggingface.co/blog/how-to-train
     - each json line should have **text** string in the object root
     - each line should look like e.g.:
     ```
-{"id": "12", "text": "<s>UTF-8 варијанта је најзгоднија за кодирање већински латиничног текста.</s><s>Дато је и кратко упутство..."}
+    {"id": "12", "text": "<s>UTF-8 варијанта је најзгоднија за кодирање већински латиничног текста.</s><s>Дато је и кратко упутство..."}
     ```
 2. Ensure the correct path to your tokenizer, **tokenizer_path** is set correctly in [config.json](training-configs/config.json)
 3. use [encode_data.py](encode_data.py) **multipleJson2dataset** method and provide it with the path to a directory containing your dataset files (json). 
