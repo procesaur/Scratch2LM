@@ -10,12 +10,11 @@ inspiration : https://huggingface.co/blog/how-to-train
 
 ## 2. DATA ENCODING
 1. prepare the dataset as follows:
-    - dataset should consist of json files
-    - each json file should have **sents** list in the object root
-    - **sents** list should consist of textual sentences
-    - json file should look at least like so:
+    - dataset should consist of jsonl files
+    - each json line should have **text** string in the object root
+    - each line should look like e.g.:
     ```
-    {"sents" = ["Hello world.", "Are you doing OK?"]}
+{"id": "12", "text": "<s>UTF-8 варијанта је најзгоднија за кодирање већински латиничног текста.</s><s>Дато је и кратко упутство..."}
     ```
 2. Ensure the correct path to your tokenizer, **tokenizer_path** is set correctly in [config.json](training-configs/config.json)
 3. use [encode_data.py](encode_data.py) **multipleJson2dataset** method and provide it with the path to a directory containing your dataset files (json). 

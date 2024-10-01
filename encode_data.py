@@ -1,15 +1,15 @@
 from datasets import TextualDataset, EncodedFiles2Dataset
-from json import load
+from json import load, loads
 from os import listdir
 from config import tokenizer, encoded_file_keyword
 from tqdm import tqdm
 
 
-def json2dataset(path, file, tokenizer, save=False, attr="sents", save_path=None):
+def jsonl2dataset(path, file, tokenizer, save=False, attr="text", save_path=None):
     with open(path+file, "r", encoding="utf-8") as jf:
-        sents = load(jf)[attr]
+        texts = [loads(x)[attr] for x in jf.readlines()]
 
-    dataset = TextualDataset(sents, tokenizer)
+    dataset = TextualDataset(texts, tokenizer)
     if save:
         if not save_path:
             save_path = path + encoded_file_keyword + file
@@ -23,16 +23,16 @@ def json2sents(path, attr="sents"):
         return load(jf)[attr]
 
 
-def multipleJson2dataset(path):
-    files = [x for x in listdir(path) if encoded_file_keyword not in x and ".json" in x]
+def multipleJsonl2dataset(path):
+    files = [x for x in listdir(path) if encoded_file_keyword not in x and ".jsonl" in x]
     for file in tqdm(files, total=len(files)):
-        json2dataset(path, file, tokenizer, save=True)
+        jsonl2dataset(path, file, tokenizer, save=True)
 
 
-def encoded2datasets(path, files, trim=None, block=None, dev_ratio=0.1,
-                     shfl=False, save=False, save_path=None, name=""):
+def encoded2datasets(path, files, trim=None, block=None, dev_ratio=0.01,
+                     shfl=False, save=False, save_path=None, name="", eos=2):
 
-    dataset = EncodedFiles2Dataset(path, files, shfl, trim=trim, block=block)
+    dataset = EncodedFiles2Dataset(path, files, shfl, trim=trim, block=block, eos=eos)
     if save:
         if save_path is None:
             save_path = path
@@ -41,12 +41,12 @@ def encoded2datasets(path, files, trim=None, block=None, dev_ratio=0.1,
         return dataset
 
 
-def multipleEncoded2datasets(path, trim=None, block=None, shfl=False, name=""):
+def multipleEncoded2datasets(path, trim=None, block=None, shfl=False, name="", eos=2):
     files = [x for x in listdir(path) if encoded_file_keyword in x]
-    encoded2datasets(path, files, save=True, trim=trim, block=block, shfl=shfl, name=name)
+    encoded2datasets(path, files, save=True, trim=trim, block=block, shfl=shfl, name=name, eos=eos, dev_ratio=0.01)
 
 
-path_to_files = "C:/gpt2/korpusi/tajno/"
-multipleJson2dataset(path_to_files)
-multipleEncoded2datasets(path_to_files, trim=512, name="_bert-p")
-multipleEncoded2datasets(path_to_files, block=128, name="_gpt-p")
+#path_to_files = "C:/gpt2/korpusi/tajno/"
+#multipleJson2dataset(path_to_files)
+#multipleEncoded2datasets(path_to_files, trim=512, name="_bert-p")
+#multipleEncoded2datasets(path_to_files, block=128, name="_gpt-p")

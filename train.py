@@ -2,7 +2,10 @@ from scratch_datasets import JsonDataset
 from config import paths, model, data_collator, training_args, model_options
 from callbacks import CustomDefaultFlowCallback, DefaultFlowCallback
 from transformers import Trainer
+from torch import tensor, cuda
 
+for c in range(0, cuda.device_count()):
+    print(cuda.get_device_name(c))
 
 # Create the train and evaluation dataset
 train_dataset = JsonDataset(paths["train_path"])

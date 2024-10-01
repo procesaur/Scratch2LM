@@ -1,10 +1,12 @@
 from transformers import TrainingArguments, AutoConfig, RobertaConfig, GPT2Config, GPTJConfig, T5Config
 from transformers import RobertaForMaskedLM, GPT2LMHeadModel, GPTJModel, T5Model
 from transformers import RobertaTokenizerFast, AutoTokenizer, T5TokenizerFast
-from transformers import DataCollatorForTokenClassification, DataCollatorForLanguageModeling
+from transformers import DataCollatorForTokenClassification, DataCollatorForLanguageModeling, DataCollatorForWholeWordMask
 from torch import cuda
 from json import load
+from os import path as px, chdir
 
+chdir(px.dirname(px.abspath(__file__)))
 
 def get_model(model_type, fast_tokenizer, pretrained="", model_params=None):
     if pretrained:
@@ -66,7 +68,7 @@ def load_tokenizer(model_type, tokenizer_path, tuning=False):
 
 def collator(model_type, fast_tokenizer):
     if "roberta" in model_type:
-        return DataCollatorForLanguageModeling(
+        return DataCollatorForWholeWordMask(
             mlm=True,
             mlm_probability=0.15,
             tokenizer=fast_tokenizer,
@@ -88,6 +90,7 @@ def tune_collator(tknzr, task=""):
 
 
 def load_configs(cfg=None, cfgpath="training-configs/config.json", tuning=False):
+    # cfgpath = px.dirname(px.abspath(__file__)) + "/" + cfgpath
     if not cfg:
         with open(cfgpath, "r", encoding="utf-8") as cf:
             cfg = load(cf)

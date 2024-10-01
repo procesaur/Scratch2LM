@@ -1,22 +1,22 @@
 {
   "paths" : {
     "main_path" : "data",
-    "train_path" : "%main_path%/train_mini_bert.jsonl",
-    "dev_path" : "%main_path%/dev_mini_bert.jsonl",
-    "tokenizer_path" :"%main_path%/tokenizer.json",
+    "train_path" : "%main_path%/digiteks/train_digiteks.jsonl",
+    "dev_path" : "%main_path%/digiteks/dev_digiteks.jsonl",
+    "tokenizer_path" :"%main_path%/jerteh355_tokenizer.json",
     "model_folder" : "%main_path%/saved",
-    "pretrained" : ""
+    "pretrained" : "%main_path%/Jerteh-355"
   },
 
   "model-options": {
-    "model_type" : "roberta-base",
+    "model_type" : "roberta-large",
     "resume-from-checkpoint": false,
     "output_from_model": true,
     "save_each_epoch": true
   },
 
   "training-options": {
-    "num_train_epochs" : 2,
+    "num_train_epochs" : 3,
     "per_device_train_batch_size" : 8,
     "per_device_eval_batch_size" : 8,
     "learning_rate" : 0.00005,
@@ -28,7 +28,8 @@
     "save_total_limit" : 1,
     "load_best_model_at_end" : false,
     "overwrite_output_dir" : true,
-    "evaluation_strategy" : "epoch"
+    "evaluation_strategy" : "epoch",
+    "report_to": "none"
   },
 
   "misc": {
